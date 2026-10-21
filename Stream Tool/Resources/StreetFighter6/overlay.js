@@ -19,6 +19,8 @@ async function refresh() {
             characters = profiles.find(g => g.id === 'street-fighter-6').characters;
         }
         const match = saved.match;
+        document.body.style.setProperty('--blue', match.p1PrimaryColor || '#203cff');
+        document.body.style.setProperty('--red', match.p2PrimaryColor || '#ff3126');
         const max = match.bestOf === 'Bo3' ? 2 : 3;
         text('eventName', match.tournamentName || 'FLOYD ESPORTS');
         text('roundName', match.round || 'MATCH DAY');
@@ -33,6 +35,13 @@ async function refresh() {
             text(`${p}BattleScore`, match[`${p}BattleScore`]);
             pips(`${p}SetPips`, Number(match[`${p}NScore`]), max);
             pips(`${p}BattlePips`, Number(match[`${p}BattleScore`]), 2);
+            const icon = $(`${p}Icon`);
+            if (icon) {
+                const fighter = characters.find(c => c.name === match[`${p}Character`]);
+                icon.hidden = !fighter || match[`${p}ShowCharacterIcon`] === false;
+                icon.onerror = () => { icon.hidden = true; };
+                if (fighter && icon.getAttribute('src') !== fighter.art) { icon.src = fighter.art; icon.alt = fighter.name; }
+            }
             const art = $(`${p}Art`);
             if (art) {
                 const fighter = characters.find(c => c.name === match[`${p}Character`]);

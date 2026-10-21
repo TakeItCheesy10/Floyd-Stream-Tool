@@ -51,6 +51,12 @@ function validateStreetFighter(input, info) {
         if (!/^[0-2]$/.test(String(value))) invalid('Battle wins must be 0, 1, or 2');
         result[`${p}BattleScore`] = Number(value);
         result[`${p}Skin`] = '1';
+        const primary = input[`${p}PrimaryColor`] ?? (p === 'p1' ? '#203cff' : '#ff3126');
+        if (typeof primary !== 'string' || !/^#[0-9a-f]{6}$/i.test(primary)) invalid('School primary color must be a six-digit hex color');
+        result[`${p}PrimaryColor`] = primary.toLowerCase();
+        const showIcon = input[`${p}ShowCharacterIcon`] ?? true;
+        if (typeof showIcon !== 'boolean') invalid('Show character icon must be true or false');
+        result[`${p}ShowCharacterIcon`] = showIcon;
     }
     for (const [key, max] of [['currentSet', result.bestOf === 'Bo5' ? 5 : 3], ['currentBattle', 3]]) {
         const value = input[key] ?? 1;
