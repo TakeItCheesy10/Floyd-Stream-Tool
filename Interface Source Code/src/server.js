@@ -25,20 +25,26 @@ function createApp(options = {}) {
         next();
     });
     app.use(express.json({ limit: '32kb' }));
-    app.get('/api/games', (req, res) => res.json(profiles.map(({ id, name }) => ({ id, name }))));
+    const interfaceInfo = JSON.parse(fs.readFileSync(path.join(textsDir, 'InterfaceInfo.json'), 'utf8'));
+    app.get('/api/games', (req, res) => res.json(profiles.map(({ id, name, characters }) => ({ id, name, characters: characters || interfaceInfo.charactersBase.map(name => ({ name, art: name === 'Random' ? '/Resources/Characters/Renders/Random.webp' : `/Resources/Characters/Renders/${name}/1.webp` })) }))));
     app.get('/api/active-game', (req, res) => {
         const { activeGame } = store.snapshot();
         res.json({ gameId: activeGame, name: profiles.find(g => g.id === activeGame).name,
-            layouts: Object.fromEntries(['scoreboard', 'versus', 'casters'].map(kind => [kind, `/layouts/${activeGame}/${kind}`])) });
+            layouts: Object.fromEntries(['scoreboard', 'versus'].map(kind => [kind, `/layouts/${activeGame}/${kind}`])) });
     });
     app.get('/api/state', (req, res) => res.json(store.current()));
+    app.get('/api/matches/:gameId', (req, res) => {
+        if (!profiles.some(profile => profile.id === req.params.gameId)) return res.sendStatus(404);
+        const match = store.snapshot().matches[req.params.gameId];
+        if (!match) return res.sendStatus(404);
+        res.json(match);
+    });
     app.get('/api/last-update', (req, res) => res.json({ timestamp: store.snapshot().revision }));
     app.post('/api/game', (req, res) => res.json(store.select(req.body?.gameId)));
     app.post('/api/scoreboard', (req, res) => res.json(store.publish(req.body)));
     app.get('/Resources/Texts/ScoreboardInfo.json', (req, res) => res.json(store.current().match));
     // Plain text OBS sources are served from saved state too; no tracked seed files are changed.
     const textFields = { 'Player 1': 'p1Name', 'Player 2': 'p2Name', 'Score 1': 'p1NScore', 'Score 2': 'p2NScore', Round: 'round', Format: 'format', 'Tournament Name': 'tournamentName' };
-    for (const p of [1, 2]) for (const field of ['Name', 'Twitter', 'Twitch']) textFields[`Caster ${p} ${field}`] = `caster${p}${field}`;
     app.get('/Resources/Texts/:directory/:file', (req, res, next) => {
         if (req.params.directory !== 'Simple Texts') return next();
         const key = textFields[req.params.file.replace(/\.txt$/, '')];
@@ -54,7 +60,7 @@ function createApp(options = {}) {
         res.type('json').sendFile(file);
     });
     app.get('/overlay/:kind', (req, res) => {
-        if (!['scoreboard', 'versus', 'casters'].includes(req.params.kind)) return res.sendStatus(404);
+        if (!['scoreboard', 'versus'].includes(req.params.kind)) return res.sendStatus(404);
         res.sendFile(path.join(__dirname, 'overlay.html'));
     });
     app.get('/layouts/:gameId/:kind', (req, res) => {

@@ -541,7 +541,7 @@ function getInfo() {
 	return new Promise(function (resolve) {
 		const oReq = new XMLHttpRequest();
 		oReq.addEventListener("load", reqListener);
-		oReq.open("GET", 'Resources/Texts/ScoreboardInfo.json');
+		oReq.open("GET", '/api/matches/smash-ultimate');
 		oReq.send();
 
 		//will trigger when file loads

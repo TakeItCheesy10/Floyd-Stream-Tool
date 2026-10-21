@@ -9,8 +9,7 @@ function atomicJson(file, data) {
 function validateMatch(input, info) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) invalid('Match must be an object');
     const result = {};
-    for (const key of ['p1Name', 'p2Name', 'p1Team', 'p2Team', 'p1Pron', 'p2Pron', 'round', 'tournamentName',
-        'caster1Name', 'caster1Twitter', 'caster1Twitch', 'caster2Name', 'caster2Twitter', 'caster2Twitch']) {
+    for (const key of ['p1Name', 'p2Name', 'p1Team', 'p2Team', 'p1Pron', 'p2Pron', 'round', 'tournamentName']) {
         const value = input[key] ?? '';
         if (typeof value !== 'string' || value.length > 200) invalid(`${key} must be text (up to 200 characters)`);
         result[key] = value;
@@ -42,6 +41,24 @@ function validateMatch(input, info) {
     result.allowIntro = input.allowIntro ?? false;
     return result;
 }
+function validateStreetFighter(input, info) {
+    const { characters } = require('./sf6-characters');
+    const result = validateMatch(input, { ...info, charactersBase: ['Random', ...characters.map(c => c.name)] });
+    const maxSets = result.bestOf === 'Bo5' ? 3 : 2;
+    if (Number(result.p1NScore) > maxSets || Number(result.p2NScore) > maxSets) invalid(`Set wins cannot exceed ${maxSets}`);
+    for (const p of ['p1', 'p2']) {
+        const value = input[`${p}BattleScore`] ?? '0';
+        if (!/^[0-2]$/.test(String(value))) invalid('Battle wins must be 0, 1, or 2');
+        result[`${p}BattleScore`] = Number(value);
+        result[`${p}Skin`] = '1';
+    }
+    for (const [key, max] of [['currentSet', result.bestOf === 'Bo5' ? 5 : 3], ['currentBattle', 3]]) {
+        const value = input[key] ?? 1;
+        if (!Number.isInteger(Number(value)) || Number(value) < 1 || Number(value) > max) invalid(`${key} must be from 1 to ${max}`);
+        result[key] = Number(value);
+    }
+    return result;
+}
 function createStore({ dataDir, textsDir, games }) {
     fs.mkdirSync(dataDir, { recursive: true });
     const file = path.join(dataDir, 'state.json');
@@ -49,7 +66,7 @@ function createStore({ dataDir, textsDir, games }) {
     const validate = (id, match) => {
         const profile = games.find(g => g.id === id);
         if (!profile) invalid('Unknown game');
-        return profile.validate ? profile.validate(match) : validateMatch(match, info);
+        return profile.validate ? profile.validate(match, info) : validateMatch(match, info);
     };
     let state;
     if (fs.existsSync(file)) {
@@ -78,7 +95,7 @@ function createStore({ dataDir, textsDir, games }) {
             if (id === state.activeGame) return current();
             const next = structuredClone(state);
             next.activeGame = id;
-            next.matches[id] ||= validate(id, {});
+            next.matches[id] ||= validate(id, games.find(g => g.id === id).defaults || {});
             return commit(next);
         },
         publish(input) {
@@ -89,4 +106,4 @@ function createStore({ dataDir, textsDir, games }) {
         }
     };
 }
-module.exports = { createStore, validateMatch };
+module.exports = { createStore, validateMatch, validateStreetFighter };

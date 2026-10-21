@@ -4,7 +4,7 @@ let service;
 if (require('electron-squirrel-startup')) app.quit();
 function createWindow() {
     const window = new BrowserWindow({
-        width: 1060, height: 580, minWidth: 900, minHeight: 510,
+        width: 1280, height: 900, minWidth: 940, minHeight: 620,
         title: 'Floyd Stream Tool',
         webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true }
     });

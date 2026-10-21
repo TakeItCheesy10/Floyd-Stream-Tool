@@ -41,12 +41,15 @@ test('publish, isolated game selection, validation, legacy output and restart pe
     await request('/api/game', { gameId: 'smash-ultimate' });
     assert.equal((await getState()).match.p1Name, 'Floyd');
     assert.equal((await getState()).match.p1NScore, '2');
-    for (const kind of ['scoreboard', 'versus', 'casters']) {
+    for (const kind of ['scoreboard', 'versus']) {
         assert.equal((await request('/overlay/' + kind)).status, 200);
         const layout = await request('/layouts/smash-ultimate/' + kind);
         assert.equal(layout.status, 200); assert.match(layout.body, /<base href="\/">/);
     }
     assert.equal((await request('/layouts/missing/scoreboard')).status, 404);
+    assert.equal((await request('/overlay/casters')).status, 404);
+    assert.equal((await request('/layouts/smash-ultimate/casters')).status, 404);
+    assert.equal((await request('/Resources/Texts/Simple%20Texts/Caster%201%20Name.txt')).status, 404);
     assert.equal((await request('/api/json/Character%20Info/..%2F..%2F..%2Fpackage')).status, 404);
     assert.equal((await request('/api/json/InterfaceInfo')).status, 200);
     assert.equal((await request('/api/game', { gameId: 'smash-ultimate' }, { Origin: 'https://foreign.example' })).status, 403);
@@ -78,4 +81,42 @@ test('damaged saved state fails clearly rather than wiping matches', async () =>
 
 test('source resource directory resolves without Electron or executable-location assumptions', () => {
     assert.ok(fs.existsSync(path.join(resolveBaseDir(), 'Game Scoreboard.html')));
+});
+
+test('Street Fighter uses its own fighter roster, set wins and battle wins', async t => {
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'floyd-sf6-test-'));
+    const service = await startServer({ port: 0, dataDir });
+    t.after(async () => { await new Promise(r => service.server.close(r)); fs.rmSync(dataDir, { recursive: true, force: true }); });
+    const request = async (route, body) => {
+        const res = await fetch(service.url + route, body ? { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) } : {});
+        return { status:res.status, data:await res.json() };
+    };
+    const selected = await request('/api/game', { gameId:'street-fighter-6' });
+    assert.equal(selected.data.match.bestOf, 'Bo5');
+    assert.equal(selected.data.match.p1Color, 'Blue');
+    const match = { ...selected.data.match, gameId:'street-fighter-6', p1Team:'Floyd Broncos', p2Team:'Away Team', p1Name:'Floyd Player', p2Name:'Opponent', p1Character:'Guile', p2Character:'Marisa', p1NScore:'1', p2NScore:'0', p1BattleScore:2, p2BattleScore:1, currentSet:2, currentBattle:3 };
+    const saved = await request('/api/scoreboard', match);
+    assert.equal(saved.status, 200);
+    assert.equal(saved.data.match.p1BattleScore, 2);
+    assert.equal(saved.data.match.p1Character, 'Guile');
+    assert.equal(saved.data.match.currentSet, 2);
+    for (const invalid of [{p1Character:'Mario'}, {p1BattleScore:3}, {p1NScore:4}, {currentSet:6}, {currentBattle:4}]) assert.equal((await request('/api/scoreboard', { ...match, ...invalid })).status, 400);
+    await request('/api/game', {gameId:'smash-ultimate'});
+    const smash = await request('/api/state');
+    assert.equal(smash.data.match.p1Name, '');
+    const restored = await request('/api/game', {gameId:'street-fighter-6'});
+    assert.equal(restored.data.match.p1Name, 'Floyd Player');
+    assert.equal(restored.data.match.p1BattleScore, 2);
+    const fixedSmash = await request('/api/matches/smash-ultimate');
+    assert.equal(fixedSmash.data.p1Name, '');
+    assert.equal(fixedSmash.data.p1Character, 'Random');
+    for (const kind of ['scoreboard','versus']) {
+        const res = await fetch(service.url + '/layouts/street-fighter-6/' + kind);
+        assert.equal(res.status, 200);
+        const html = await res.text();
+        assert.match(html, /Branding\/floyd-esports\.png/);
+        assert.doesNotMatch(html, /versari|caster/i);
+    }
+    const active = await request('/api/active-game');
+    assert.deepEqual(Object.keys(active.data.layouts), ['scoreboard','versus']);
 });

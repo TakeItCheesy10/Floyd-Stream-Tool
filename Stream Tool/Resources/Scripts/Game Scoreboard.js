@@ -68,12 +68,12 @@ async function getData(scInfo) {
 	let bestOf = scInfo['bestOf'];
 	let format = scInfo['format'];
 
-	let caster1 = scInfo['caster1Name'];
-	twitter1 = scInfo['caster1Twitter'];
-	twitch1 = scInfo['caster1Twitch'];
-	let caster2 = scInfo['caster2Name'];
-	twitter2 = scInfo['caster2Twitter'];
-	twitch2 = scInfo['caster2Twitch'];;
+	let caster1 = '';
+	twitter1 = '';
+	twitch1 = '';
+	let caster2 = '';
+	twitter2 = '';
+	twitch2 = '';;
 
 
 	//first, things that will happen only the first time the html loads
@@ -864,7 +864,7 @@ function getInfo() {
 	return new Promise(function (resolve) {
 		const oReq = new XMLHttpRequest();
 		oReq.addEventListener("load", reqListener);
-		oReq.open("GET", 'Resources/Texts/ScoreboardInfo.json');
+		oReq.open("GET", '/api/matches/smash-ultimate');
 		oReq.send();
 
 		//will trigger when file loads
