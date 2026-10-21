@@ -28,7 +28,8 @@
 }
 
 body {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 0px;
   margin: 0px;
   background-color: var(--bg2);
@@ -37,6 +38,28 @@ body {
   font-family: 'Roboto-Regular';
   font-size: 16px;
 }
+
+#gameBar { padding: 16px 18px 12px; background: #101721; border-bottom: 2px solid #347ed8; position: relative; z-index: 10; }
+.gameHeading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.gameHeading strong { font-size:18px; letter-spacing:1.2px; color:#fff; }
+.gameHeading strong span { font-weight:400; color:#b2c9e7; }
+.phaseLabel { font-size:10px; letter-spacing:1.1px; color:#a4b4c8; }
+.gameControls, .sourceLinks { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+.gameControls label { font-size:13px; color:#c6d3e4; }
+#gameSelect { padding:8px 10px; border:1px solid #526f94; border-radius:5px; color:white; background:#203047; font:inherit; font-size:14px; min-width:260px; }
+#publishStatus { font-size:12px; color:#8fe0b2; }
+#publishStatus[data-state="pending"] { color:#f7ce79; }
+#publishStatus[data-state="error"] { color:#ff9e9e; }
+.sourceLinks { margin-top:10px; }
+#gameBar button, #previewPanel button { font:inherit; font-size:12px; background:#24364e; color:#e3edfc; border:1px solid #456184; border-radius:4px; padding:6px 10px; cursor:pointer; }
+#gameBar button:hover, #previewPanel button:hover { background:#345275; }
+#gameBar button:focus-visible, #gameSelect:focus-visible { outline:2px solid white; outline-offset:2px; }
+.sourceLinks span { font-size:11px; color:#a4b4c8; }
+#previewPanel { position:relative; z-index:10; padding:12px 18px; background:#151d29; }
+#previewPanel[hidden] { display:none; }
+#previewPanel > div { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+#previewFrame { display:block; border:1px solid #456184; width:100%; aspect-ratio:16/9; background:repeating-conic-gradient(#202936 0 25%,#18212d 0 50%) 0/24px 24px; }
+@media(max-width:850px) { .gameHeading {align-items:flex-start;flex-direction:column;} #gameSelect {min-width:0;max-width:100%;} }
 
 /* .hiddenScoreInput {
   display: none !important;

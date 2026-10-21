@@ -1,68 +1,24 @@
-const { app, globalShortcut, BrowserWindow } = require('electron');
-const path = require('path');
-
-// start the web server
-require('./server');
-
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
-  app.quit();
+const { app, BrowserWindow, dialog } = require('electron');
+const { startServer } = require('./server');
+let service;
+if (require('electron-squirrel-startup')) app.quit();
+function createWindow() {
+    const window = new BrowserWindow({
+        width: 1060, height: 580, minWidth: 900, minHeight: 510,
+        title: 'Floyd Stream Tool',
+        webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true }
+    });
+    window.removeMenu();
+    window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    window.webContents.on('will-navigate', (event, url) => {
+        if (new URL(url).origin !== service.url) event.preventDefault();
+    });
+    window.loadURL(service.url);
 }
-
-const createWindow = () => {
-  // 1. Define the base size that looks good on Windows
-  const baseWidth = 890;
-  const baseHeight = 340;
-
-  const isLinux = process.platform === 'linux';
-  const adjustment = isLinux ? 50 : 0;
-
-  const mainWindow = new BrowserWindow({
-    width: baseWidth + adjustment,
-    height: baseHeight + adjustment,
-    resizable: false,
-
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      enableRemoteModule: true,
-    }
-  });
-
-// mainWindow.webContents.openDevTools(); 
-
-
-  // we dont like menus
-  mainWindow.removeMenu();
-
-
-
-  // mainWindow.setAlwaysOnTop(true);
-
-  // load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
-};
-
-app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
-
-// Quit when all windows are closed.
-app.on('window-all-closed', () => {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+app.whenReady().then(async () => {
+    try { service = await startServer(); createWindow(); }
+    catch (error) { dialog.showErrorBox('Floyd Stream Tool could not start', error.message); app.quit(); }
 });
-
-app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
+app.on('activate', () => { if (service && BrowserWindow.getAllWindows().length === 0) createWindow(); });
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.on('before-quit', () => service?.server.close());

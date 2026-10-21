@@ -1,8 +1,8 @@
 {
-  "name": "ultimae-st-gui",
-  "productName": "Ultimate ST",
+  "name": "floyd-stream-tool",
+  "productName": "Floyd Stream Tool",
   "version": "2.0.0",
-  "description": "An electron interface for Ultimate tournament streams.",
+  "description": "Standalone esports scoreboard and OBS overlay controller",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
@@ -11,7 +11,9 @@
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "serve": "node src/server.js",
+    "test": "node --test"
   },
   "keywords": [],
   "author": {
@@ -63,9 +65,21 @@
     "electron-packager": "^15.2.0"
   },
   "build": {
-    "appId": "test.testo.testu",
+    "appId": "com.takeitcheesy.floydstreamtool",
     "win": {
       "target": "portable"
-    }
+    },
+    "extraResources": [
+      {
+        "from": "../Stream Tool",
+        "to": "Stream Tool",
+        "filter": [
+          "**/*",
+          "!*.exe",
+          "!**/*.psd",
+          "!.floyd-state/**"
+        ]
+      }
+    ]
   }
 }

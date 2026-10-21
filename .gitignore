@@ -1,0 +1,5 @@
+**/node_modules/
+**/.floyd-state/
+**/out/
+**/dist/
+*.log

@@ -1,37 +1,12 @@
-const isElectron = typeof require !== 'undefined';
-let fs, path, os, baseDir;
+// The desktop window and browser use the same local controller API.
+const isElectron = false;
+const mainPath = '/Resources/Texts';
+const charPath = '/Resources/Characters';
+let activeGame = null;
+let editVersion = 0;
+let publishedVersion = 0;
 
-if (isElectron) {
-    fs = require('fs');
-    path = require('path');
-    os = require('os');
-
-    const isDev = process.execPath.includes('node_modules');
-    if (isDev) {
-        baseDir = path.resolve(__dirname, '..', '..', 'Stream Tool');
-    } else if (process.env.PORTABLE_EXECUTABLE_DIR) {
-        baseDir = process.env.PORTABLE_EXECUTABLE_DIR;
-    } else {
-        baseDir = path.dirname(process.execPath);
-    }
-    console.log("Electron mode. Base Dir:", baseDir);
-} else {
-    // browser mode
-    baseDir = "";
-    console.log("Browser mode.");
-}
-
-let mainPath, charPath;
-
-if (isElectron) {
-    mainPath = path.resolve(baseDir, 'Resources', 'Texts');
-    charPath = path.resolve(baseDir, 'Resources', 'Characters');
-} else {
-    mainPath = "/Resources/Texts";
-    charPath = "/Resources/Characters";
-}
-
-window.onload = init;
+window.onload = () => init().catch(error => showStatus(error.message, 'error'));
 
 //yes we all like global variables
 let charP1 = "Random";
@@ -153,7 +128,7 @@ async function init() {
     p1Win3.addEventListener("click", changeScoreTicks3);
     p2Win3.addEventListener("click", changeScoreTicks3);
 
-    await loadSavedData();
+
 
     //set click listeners for the [W] and [L] buttons
     p1W.addEventListener("click", setWLP1);
@@ -228,40 +203,12 @@ async function init() {
     Mousetrap.bind('f1', () => { giveWinP1() });
     Mousetrap.bind('f2', () => { giveWinP2() });
 
-    // display IP addresses if in Electron
-    if (isElectron) {
-        const remoteInfo = document.getElementById('remoteInfo');
-        const ipListDisplay = document.getElementById('ipList');
-        const interfaces = os.networkInterfaces();
-        let addresses = [];
-
-        for (const k in interfaces) {
-            for (const k2 in interfaces[k]) {
-                const address = interfaces[k][k2];
-                // filter for IPv4 and non-internal (not 127.0.0.1)
-                if (address.family === 'IPv4' && !address.internal) {
-                    addresses.push(`http://${address.address}:1111`);
-                }
-            }
-        }
-
-        if (addresses.length > 0) {
-            remoteInfo.style.display = "block";
-            ipListDisplay.innerHTML = addresses.join('<br>');
-
-            // Generate QR Code
-            const qrContainer = document.getElementById("qrcode");
-            qrContainer.innerHTML = "";
-            new QRCode(qrContainer, {
-                text: addresses[0],
-                width: 64,
-                height: 64,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.L
-            });
-        }
-    }
+    await setupGameControls();
+    await loadSavedData();
+    document.body.addEventListener('input', event => {
+        if (event.target.closest('#overlay, #actualSettings')) markEdited();
+    });
+    showStatus('Live - changes saved');
 
     // const numberedScoreOption = document.querySelector("#forceNS");
     // numberedScoreOption.addEventListener("click", () => {
@@ -309,33 +256,23 @@ function goBack() {
 
 //called whenever we need to read a json file
 async function getJson(fileName) {
-    if (isElectron) {
-        try {
-            let settingsRaw = fs.readFileSync(path.join(mainPath, fileName + ".json"));
-            return JSON.parse(settingsRaw);
-        } catch (error) {
-            return undefined;
-        }
-    } else {
-        try {
-            const response = await fetch('/api/json/' + fileName);
-            if (!response.ok) return undefined;
-            return await response.json();
-        } catch (error) {
-            console.error("Error fetching JSON:", error);
-            return undefined;
-        }
-    }
+    const response = await fetch('/api/json/' + fileName, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Could not load ' + fileName);
+    return response.json();
 }
 
-async function loadSavedData() {
-    let data = await getJson("ScoreboardInfo");
+async function loadSavedData(saved) {
+    saved ||= await fetch('/api/state', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('Could not load saved match'); return r.json(); });
+    activeGame = saved.gameId;
+    localTimestamp = saved.timestamp;
+    document.getElementById('gameSelect').value = activeGame;
+    let data = saved.match;
     if (data) {
         // Player 1
-        p1NameInp.value = data.p1Name || p1NameInp.value;
-        p1TagInp.value = data.p1Team || p1TagInp.value;
-        p1PronInp.value = data.p1Pron || p1PronInp.value;
-        p1NScoreInp.value = data.p1NScore || p1NScoreInp.value;
+        p1NameInp.value = data.p1Name ?? '';
+        p1TagInp.value = data.p1Team ?? '';
+        p1PronInp.value = data.p1Pron ?? '';
+        p1NScoreInp.value = data.p1NScore ?? '0';
 
         charP1 = data.p1Character || "Random";
         skinP1 = data.p1Skin || `1`;
@@ -343,10 +280,10 @@ async function loadSavedData() {
         currentP1WL = data.p1WL || "Nada";
 
         // Player 2
-        p2NameInp.value = data.p2Name || p2NameInp.value;
-        p2TagInp.value = data.p2Team || p2TagInp.value;
-        p2PronInp.value = data.p2Pron || p2PronInp.value;
-        p2NScoreInp.value = data.p2NScore || p2NScoreInp.value;
+        p2NameInp.value = data.p2Name ?? '';
+        p2TagInp.value = data.p2Team ?? '';
+        p2PronInp.value = data.p2Pron ?? '';
+        p2NScoreInp.value = data.p2NScore ?? '0';
 
         charP2 = data.p2Character || "Random";
         skinP2 = data.p2Skin || `1`;
@@ -354,8 +291,8 @@ async function loadSavedData() {
         currentP2WL = data.p2WL || "Nada";
 
         currentBestOf = data.bestOf || "Bo3";
-        roundInp.value = data.round || roundInp.value;
-        formatInp.value = data.format || formatInp.value;
+        roundInp.value = data.round ?? '';
+        formatInp.value = data.format ?? '';
 
         document.getElementById('tournamentName').value = data.tournamentName || "";
         document.getElementById('cName1').value = data.caster1Name || "";
@@ -426,63 +363,81 @@ async function loadSavedData() {
 let localTimestamp = Date.now();
 let isSaving = false;
 
-const API_BASE = isElectron ? 'http://localhost:1111' : '';
 
+
+function showStatus(text, state = 'live') {
+    const element = document.getElementById('publishStatus');
+    element.textContent = text; element.dataset.state = state;
+}
+function markEdited() {
+    editVersion++; showStatus('Unpublished changes - press UPDATE', 'pending');
+}
+async function setupGameControls() {
+    const response = await fetch('/api/games');
+    if (!response.ok) throw new Error('Could not load games');
+    const games = await response.json();
+    const select = document.getElementById('gameSelect');
+    select.replaceChildren(...games.map(game => new Option(game.name, game.id)));
+    select.disabled = false;
+    select.addEventListener('change', async () => {
+        if (isSaving || editVersion !== publishedVersion) {
+            select.value = activeGame;
+            showStatus('Publish changes before switching games', 'pending'); return;
+        }
+        select.disabled = true; isSaving = true;
+        try {
+            const response = await fetch('/api/game', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gameId: select.value }) });
+            const saved = await response.json();
+            if (!response.ok) throw new Error(saved.error);
+            await loadSavedData(saved); showStatus('Live - changes saved');
+        } catch (error) { select.value = activeGame; showStatus(error.message, 'error'); }
+        finally { select.disabled = false; isSaving = false; }
+    });
+    document.getElementById('copyObsUrl').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(location.origin + '/overlay/scoreboard'); showStatus('OBS scoreboard URL copied'); }
+        catch { showStatus('OBS URL: ' + location.origin + '/overlay/scoreboard'); }
+    });
+    document.querySelectorAll('[data-preview]').forEach(button => button.addEventListener('click', () => {
+        document.getElementById('previewTitle').textContent = button.textContent + ' - live preview';
+        document.getElementById('previewPanel').hidden = false;
+        document.getElementById('previewFrame').src = '/overlay/' + button.dataset.preview;
+    }));
+    document.getElementById('closePreview').addEventListener('click', () => {
+        document.getElementById('previewPanel').hidden = true;
+        document.getElementById('previewFrame').removeAttribute('src');
+    });
+}
 async function pollForUpdates() {
-    if (isSaving) return;
-
+    if (isSaving || !activeGame) return;
     try {
-        const response = await fetch(API_BASE + '/api/last-update');
+        const response = await fetch('/api/last-update', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Controller disconnected');
         const data = await response.json();
-
         if (data.timestamp > localTimestamp) {
-            console.log("Remote update detected, reloading...");
-            await loadSavedData();
-            localTimestamp = data.timestamp;
-
-            // show notification
-            const popup = document.getElementById('remoteUpdatePopup');
-            if (popup) {
-                popup.classList.add('show');
-                setTimeout(() => {
-                    popup.classList.remove('show');
-                }, 1000);
-            }
+            if (editVersion !== publishedVersion) { showStatus('Live match changed - reload to discard your edits', 'pending'); return; }
+            await loadSavedData(); showStatus('Live - changes saved');
         }
-    } catch (error) {
-        console.error("Polling error:", error);
-    }
+    } catch (error) { showStatus(error.message + ' - retry UPDATE when connected', 'error'); }
 }
-
 setInterval(pollForUpdates, 1000);
-
-
 async function saveData(data) {
+    if (isSaving || !activeGame) return;
     isSaving = true;
+    const version = editVersion;
+    showStatus('Publishing...', 'pending');
     try {
-        const response = await fetch(API_BASE + '/api/scoreboard', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
+        const response = await fetch('/api/scoreboard', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...data, gameId: activeGame })
         });
-
-        if (response.ok) {
-            const updateResponse = await fetch(API_BASE + '/api/last-update');
-            const updateData = await updateResponse.json();
-            localTimestamp = updateData.timestamp;
-            console.log("Data saved and timestamp updated");
-        } else {
-            console.error("Error saving data via API");
-        }
-    } catch (error) {
-        console.error("Error saving data:", error);
-    } finally {
-        isSaving = false;
-    }
+        const saved = await response.json();
+        if (!response.ok) throw new Error(saved.error || 'Could not publish');
+        localTimestamp = saved.timestamp;
+        publishedVersion = version;
+        showStatus(editVersion === version ? 'Live - changes saved' : 'Unpublished changes - press UPDATE', editVersion === version ? 'live' : 'pending');
+    } catch (error) { showStatus(error.message, 'error'); }
+    finally { isSaving = false; }
 }
-
 
 //will load the color list to a color slot combo box
 async function loadColors(pNum) {
@@ -534,6 +489,7 @@ async function loadColors(pNum) {
 }
 
 async function updateColor() {
+    markEdited();
 
     let pNum; //you've seen this one enough already, right?
     if (this.parentElement.parentElement == document.getElementById("p1Color")) {
@@ -653,6 +609,7 @@ function filterChars() {
 
 //called whenever clicking an image in the character roster
 function changeCharacter() {
+    markEdited();
     if (charP1Active) {
         charP1 = this.id;
         skinP1 = `1`;
@@ -723,10 +680,12 @@ async function addSkinIcons(pNum) {
 }
 //whenever clicking on the skin images
 function changeSkinP1() {
+    markEdited();
     skinP1 = this.id;
     charImgChange(charImgP1, charP1, skinP1);
 }
 function changeSkinP2() {
+    markEdited();
     skinP2 = this.id;
     charImgChange(charImgP2, charP2, skinP2);
 }
@@ -794,15 +753,16 @@ function checkScore(tick1, tick2, tick3) {
 
 //gives a victory to player 1 
 function giveWinP1() {
-    p1NScoreInp.value = Number(p1NScoreInp.value) + 1;
+    p1NScoreInp.value = Number(p1NScoreInp.value) + 1; markEdited();
 }
 //same with P2
 function giveWinP2() {
-    p2NScoreInp.value = Number(p2NScoreInp.value) + 1;
+    p2NScoreInp.value = Number(p2NScoreInp.value) + 1; markEdited();
 }
 
 
-function setWLP1() {
+function setWLP1(event) {
+    if (event?.isTrusted) markEdited();
     if (this == p1W) {
         currentP1WL = "W";
         this.style.color = "var(--text1)";
@@ -817,7 +777,8 @@ function setWLP1() {
         p1W.style.backgroundImage = "var(--bg4)";
     }
 }
-function setWLP2() {
+function setWLP2(event) {
+    if (event?.isTrusted) markEdited();
     if (this == p2W) {
         currentP2WL = "W";
         this.style.color = "var(--text1)";
@@ -869,7 +830,8 @@ function getTextWidth(text, font) {
 
 
 //used when clicking on the "Best of" buttons
-function changeBestOf() {
+function changeBestOf(event) {
+    if (event?.isTrusted) markEdited();
     let theOtherBestOf; //we always gotta know
     if (this == document.getElementById("bo5Div")) {
         currentBestOf = "Bo5";
@@ -909,6 +871,7 @@ function checkRound() {
 }
 
 function swap() {
+    markEdited();
     let tempP1Name = p1NameInp.value;
     let tempP1Team = p1TagInp.value;
     let tempP1Pron = p1PronInp.value;
@@ -958,6 +921,7 @@ function swap() {
 }
 
 function clearPlayers() {
+    markEdited();
     //clear player texts
     p1TagInp.value = "";
     p1NameInp.value = "";
@@ -1019,6 +983,7 @@ function setScore(score, tick1, tick2, tick3) {
 
 
 function forceWLtoggles() {
+    markEdited();
     const wlButtons = document.getElementsByClassName("wlButtons");
 
     if (forceWL.checked) {
@@ -1073,7 +1038,7 @@ async function writeScoreboard() {
         p1Name: p1NameInp.value,
         p1Team: p1TagInp.value,
         p1Pron: p1PronInp.value,
-        p1NScore: p1NScoreInp.value,
+        p1NScore: p1NScoreInp.value || '0',
         p1Character: charP1,
         p1Skin: skinP1,
         p1Color: colorP1,
@@ -1081,7 +1046,7 @@ async function writeScoreboard() {
         p2Name: p2NameInp.value,
         p2Team: p2TagInp.value,
         p2Pron: p2PronInp.value,
-        p2NScore: p2NScoreInp.value,
+        p2NScore: p2NScoreInp.value || '0',
         p2Character: charP2,
         p2Skin: skinP2,
         p2Color: colorP2,

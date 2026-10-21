@@ -3,16 +3,20 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Stream Tool</title>
+    <title>Floyd Stream Tool</title>
     <link rel="stylesheet" href="index.css">
-    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>if (window.module) module = window.module;</script>
     <script src="gui.js" defer></script>
     <script src="mousetrap.min.js" defer></script>
   </head>
   
   <body>
+
+    <header id="gameBar">
+      <div class="gameHeading"><strong>FLOYD <span>STREAM TOOL</span></strong><span class="phaseLabel">SMASH EDITION · MULTI-GAME FOUNDATION</span></div>
+      <div class="gameControls"><label for="gameSelect">Live game</label><select id="gameSelect" disabled><option>Connecting…</option></select><span id="publishStatus" role="status" aria-live="polite">Connecting…</span></div>
+      <div class="sourceLinks"><button id="copyObsUrl" type="button">Copy OBS scoreboard URL</button><button type="button" data-preview="scoreboard">Scoreboard</button><button type="button" data-preview="versus">Versus</button><button type="button" data-preview="casters">Casters</button><span>OBS: 1920 × 1080</span></div>
+    </header>
+    <section id="previewPanel" hidden><div><strong id="previewTitle">Scoreboard preview</strong><button id="closePreview" type="button">Close preview</button></div><iframe id="previewFrame" title="Live overlay preview"></iframe></section>
 
     <div id="viewport"> <!-- so we can move the viewport easily -->
 
