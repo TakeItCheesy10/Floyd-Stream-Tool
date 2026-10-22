@@ -61,8 +61,8 @@ async function loadSkins(p, selected) {
     const character = controls[p + 'Character'].value;
     let skins = ['1'];
     if (!sf6() && character && character !== 'Random') {
-        try { skins = (await api('/api/json/Character%20Info/' + encodeURIComponent(character))).skinList.map(String); }
-        catch { skins = ['1']; }
+        try { skins = profiles.find(g=>g.id===live.gameId)?.characters.find(c=>c.name===character)?.skins || (await api('/api/json/Character%20Info/' + encodeURIComponent(character))).skinList.map(String); }
+        catch { status('Character assets unavailable · reconnecting', 'error'); return; }
     }
     if (controls[p + 'Character'].value !== character) return;
     controls[p + 'Skin'].value = skins.includes(String(selected)) ? String(selected) : skins[0];
@@ -71,7 +71,7 @@ async function loadSkins(p, selected) {
     for(const value of skins) {
         const button=node('button','costume-option');button.type='button';button.title='Costume '+value;button.setAttribute('aria-label',(p==='p1'?'Home':'Away')+' costume '+value);
         button.setAttribute('aria-pressed',String(value===controls[p+'Skin'].value));
-        const icon=node('img');icon.src='/Resources/Characters/Stock%20Icons/'+encodeURIComponent(character)+'/'+encodeURIComponent(value)+'.png';icon.alt='';button.append(icon);
+        const icon=node('img');icon.src='/Resources/Characters/Stock%20Icons/'+encodeURIComponent(character)+'/'+encodeURIComponent(value)+'.png';icon.alt='';icon.dataset.asset=icon.src;icon.onerror=()=>{icon.dataset.failed='true';};button.append(icon);
         button.onclick=()=>{controls[p+'Skin'].value=value;host.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));updateArt(p);edited();};host.append(button);
     }
 }
@@ -80,7 +80,8 @@ function updateArt(p) {
     const profile = profiles.find(g => g.id === live.gameId);
     const fighter = profile.characters.find(c => c.name === character);
     const image = $(p + 'Art'); image.hidden = !fighter || character === 'Random';
-    image.onerror = () => { image.hidden = true; };
+    image.onerror = () => { image.hidden = true; image.dataset.failed='true'; };
+    image.onload = () => { image.dataset.failed=''; };
     if (fighter) { image.src = sf6() ? fighter.art : character === 'Random' ? fighter.art : `/Resources/Characters/Renders/${encodeURIComponent(character)}/${encodeURIComponent(controls[p + 'Skin'].value || '1')}.webp`; image.alt = character; if(!sf6() && character!=='Random')showSmashFighter(image,image.getAttribute('src')); }
 }
 async function paint(saved) {
@@ -155,7 +156,10 @@ async function refresh() {
             if (disconnected) {
                 status(dirty ? 'Unpublished changes' : 'LIVE · All changes published', dirty ? 'pending' : 'live');
                 disconnected = false;
+                await Promise.all(['p1','p2'].map(async p=>{await loadSkins(p,controls[p+'Skin'].value);updateArt(p);}));
             }
+            for(const p of ['p1','p2']) { const art=$(p+'Art'); if(art?.dataset.failed==='true'){art.dataset.failed='';updateArt(p);} }
+            document.querySelectorAll('.costume-option img[data-failed="true"]').forEach(img=>{img.dataset.failed='';img.src=img.dataset.asset;});
             if (changed.timestamp !== live.timestamp) {
                 if (dirty) status('Live match changed. Discard edits to reload it.', 'pending');
                 else await paint(await api('/api/state'));

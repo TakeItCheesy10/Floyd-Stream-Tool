@@ -48,14 +48,14 @@ async function refresh() {
             if (icon) {
                 const fighter = match[p+'Character']==='Random'?null:characters.find(c=>c.name===match[p+'Character']);
                 icon.hidden = !fighter; if($(p+'IconUnknown'))$(p+'IconUnknown').hidden=Boolean(fighter);
-                icon.onerror = () => { icon.hidden = true; };
+                icon.onerror = () => { icon.hidden = true; icon.removeAttribute('src'); previous=''; };
                 if (fighter && icon.getAttribute('src') !== `/Resources/Characters/Stock%20Icons/${encodeURIComponent(fighter.name)}/${encodeURIComponent(match[p+'Skin']||'1')}.png`) { icon.src = `/Resources/Characters/Stock%20Icons/${encodeURIComponent(fighter.name)}/${encodeURIComponent(match[p+'Skin']||'1')}.png`; icon.alt = fighter.name; }
             }
             const art = $(`${p}Art`);
             if (art) {
                 const fighter = match[p+'Character']==='Random'?null:characters.find(c=>c.name===match[p+'Character']);
                 art.hidden = !fighter; if($(p+'Unknown'))$(p+'Unknown').hidden=Boolean(fighter);
-                art.onerror = () => { art.hidden = true; if($(p+'Unknown'))$(p+'Unknown').hidden=false; };
+                art.onerror = () => { art.removeAttribute('src'); art.dataset.source=''; previous=''; art.hidden = true; if($(p+'Unknown'))$(p+'Unknown').hidden=false; };
                 if (fighter && art.dataset.source !== `/Resources/Characters/Renders/${encodeURIComponent(fighter.name)}/${encodeURIComponent(match[p+'Skin']||'1')}.webp`) { showSmashFighter(art, `/Resources/Characters/Renders/${encodeURIComponent(fighter.name)}/${encodeURIComponent(match[p+'Skin']||'1')}.webp`); art.alt = fighter.name; }
             }
         }

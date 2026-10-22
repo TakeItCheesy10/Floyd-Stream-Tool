@@ -47,14 +47,14 @@ async function refresh() {
             if (icon) {
                 const fighter = characters.find(c => c.name === match[`${p}Character`]);
                 icon.hidden = !fighter;
-                icon.onerror = () => { icon.hidden = true; };
+                icon.onerror = () => { icon.hidden = true; icon.removeAttribute('src'); previous=''; };
                 if (fighter && icon.getAttribute('src') !== fighter.art) { icon.src = fighter.art; icon.alt = fighter.name; }
             }
             const art = $(`${p}Art`);
             if (art) {
                 const fighter = characters.find(c => c.name === match[`${p}Character`]);
                 art.hidden = !fighter;
-                art.onerror = () => { art.hidden = true; };
+                art.onerror = () => { art.removeAttribute('src'); art.dataset.source=''; previous=''; art.hidden = true; };
                 if (fighter && art.getAttribute('src') !== fighter.art) { art.src = fighter.art; art.alt = fighter.name; }
             }
         }

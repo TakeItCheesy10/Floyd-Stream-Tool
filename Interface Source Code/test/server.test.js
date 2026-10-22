@@ -151,3 +151,18 @@ test('Smash two-level scores, costumes, stage and atomic selection reset survive
  const restored=await fetch(service.url+'/api/state').then(r=>r.json());assert.deepEqual(restored.match,reset.data.match);
  await post('/api/game',{gameId:'street-fighter-6'});assert.equal((await post('/api/reset-selections',{})).status,400);
 });
+
+test('Smash roster supplies costume choices and encoded image URLs are served', async t => {
+ const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'floyd-art-'));
+ const service=await startServer({port:0,dataDir});
+ t.after(async()=>{await new Promise(r=>service.server.close(r));fs.rmSync(dataDir,{recursive:true,force:true})});
+ const profiles=await fetch(service.url+'/api/games').then(r=>r.json());
+ const roster=profiles.find(g=>g.id==='smash-ultimate').characters;
+ for(const name of ['Daisy','Sora','Banjo & Kazooie']){
+  const fighter=roster.find(c=>c.name===name);assert.deepEqual(fighter.skins,['1','2','3','4','5','6','7','8']);
+  for(const [folder,ext] of [['Renders','webp'],['Stock Icons','png']]){
+   const r=await fetch(service.url+'/Resources/Characters/'+encodeURIComponent(folder)+'/'+encodeURIComponent(name)+'/8.'+ext);
+   assert.equal(r.status,200);assert.match(r.headers.get('content-type'),/^image\//);assert.ok((await r.arrayBuffer()).byteLength>100);
+  }
+ }
+});

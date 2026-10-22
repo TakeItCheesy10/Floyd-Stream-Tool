@@ -26,7 +26,7 @@ function createApp(options = {}) {
     });
     app.use(express.json({ limit: '32kb' }));
     const interfaceInfo = JSON.parse(fs.readFileSync(path.join(textsDir, 'InterfaceInfo.json'), 'utf8'));
-    app.get('/api/games', (req, res) => res.json(profiles.map(({ id, name, characters }) => ({ id, name, characters: characters || interfaceInfo.charactersBase.map(name => ({ name, art: name === 'Random' ? '/Resources/Characters/Renders/Random.webp' : `/Resources/Characters/Renders/${name}/1.webp` })) }))));
+    app.get('/api/games', (req, res) => res.json(profiles.map(({ id, name, characters }) => ({ id, name, characters: characters || interfaceInfo.charactersBase.map(name => ({ name, skins: name === 'Random' ? ['1'] : JSON.parse(fs.readFileSync(path.join(textsDir, 'Character Info', name + '.json'), 'utf8')).skinList.map(String), art: name === 'Random' ? '/Resources/Characters/Renders/Random.webp' : `/Resources/Characters/Renders/${name}/1.webp` })) }))));
     app.get('/api/active-game', (req, res) => {
         const { activeGame } = store.snapshot();
         res.json({ gameId: activeGame, name: profiles.find(g => g.id === activeGame).name,
