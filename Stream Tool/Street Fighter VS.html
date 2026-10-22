@@ -1,8 +1,10 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Floyd Esports — Street Fighter 6 Matchup</title><link rel="stylesheet" href="Resources/StreetFighter6/overlay.css"></head>
-<body class="versus-screen"><main class="versus-stage">
-<header class="vs-heading"><img src="Resources/Branding/floyd-esports.png" alt="Floyd Esports"><div><small>FLOYD ESPORTS PRESENTS</small><h1>STREET FIGHTER <i>6</i></h1></div><div class="vs-event"><strong id="eventName">FLOYD ESPORTS</strong><span id="roundName">MATCH DAY</span></div></header>
-<section class="fighter-matchup"><article class="vs-side home"><div class="fighter-glow"></div><img id="p1Art" class="fighter-art" alt=""><div class="vs-identity"><small id="p1Team">HOME TEAM</small><h2 id="p1Name">PLAYER 1</h2><strong id="p1Character">SELECT FIGHTER</strong></div><b id="p1Score" class="vs-score">0</b></article>
-<div class="vs-middle"><img src="Resources/Branding/floyd-esports.png" alt="Floyd Esports"><strong>VS</strong><span id="seriesLabel">BEST OF 5</span></div>
-<article class="vs-side away"><div class="fighter-glow"></div><img id="p2Art" class="fighter-art" alt=""><div class="vs-identity"><small id="p2Team">AWAY TEAM</small><h2 id="p2Name">PLAYER 2</h2><strong id="p2Character">SELECT FIGHTER</strong></div><b id="p2Score" class="vs-score">0</b></article></section>
-<footer class="vs-footer"><span>FIRST TO <b id="firstTo">3</b> SETS</span><strong id="matchPosition">SET 1 · BATTLE 1</strong><span>BATTLE WINS <b id="p1BattleScore">0</b> — <b id="p2BattleScore">0</b></span></footer>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Floyd Esports — Street Fighter 6 Versus</title><link rel="stylesheet" href="Resources/StreetFighter6/overlay.css?v=score-tiles-4"><link rel="stylesheet" href="Resources/StreetFighter6/versus.css"></head>
+<body class="sf6-versus" hidden><main class="fight-stage" aria-label="Street Fighter 6 versus screen">
+<div class="paint-split" aria-hidden="true"></div><div class="arena-grid" aria-hidden="true"></div>
+<header class="fight-heading"><span class="fight-title">STREET FIGHTER <b>6</b></span><img src="Resources/Branding/floyd-bronco.png" alt="Floyd Broncos"><span class="fight-caption">VERSUS</span></header>
+<section class="fight-roster" aria-label="Matchup">
+<article class="fight-side home"><span class="side-stamp">P1</span><div class="portrait-slab"></div><img id="p1Art" class="matchup-art" alt="" hidden><div class="fight-identity"><div class="school-strip"><span id="p1Team">HOME TEAM</span></div><h1 id="p1Name">PLAYER 1</h1><p id="p1Character">SELECT FIGHTER</p></div></article>
+<div class="fight-center" aria-label="Versus"><span>VS</span><div class="versus-slash" aria-hidden="true"></div></div>
+<article class="fight-side away"><span class="side-stamp">P2</span><div class="portrait-slab"></div><img id="p2Art" class="matchup-art" alt="" hidden><div class="fight-identity"><div class="school-strip"><span id="p2Team">AWAY TEAM</span></div><h1 id="p2Name">PLAYER 2</h1><p id="p2Character">SELECT FIGHTER</p></div></article>
+</section><footer class="fight-bottom"><span>FLOYD ESPORTS</span><div aria-hidden="true"></div><span>STREET FIGHTER 6</span></footer>
 </main><script src="Resources/StreetFighter6/overlay.js"></script></body></html>

@@ -4,6 +4,7 @@
 </head><body><script>
 // A permanent OBS source. Keep the existing frame during server outages.
 const kind = location.pathname.split('/').pop();
+const requiredGame = new URLSearchParams(location.search).get('game');
 let activeGame, currentFrame, pendingFrame;
 function fit() {
     const scale = Math.min(innerWidth / 1920, innerHeight / 1080);
@@ -15,6 +16,11 @@ async function refresh() {
         const response = await fetch('/api/active-game', { cache: 'no-store' });
         if (!response.ok) throw new Error('Overlay connection lost');
         const data = await response.json();
+        if (requiredGame && data.gameId !== requiredGame) {
+            pendingFrame?.remove(); pendingFrame = null;
+            currentFrame?.remove(); currentFrame = null; activeGame = null;
+            return;
+        }
         if (data.gameId !== activeGame && !pendingFrame) {
             const url = data.layouts[kind];
             const check = await fetch(url, { method: 'HEAD' });

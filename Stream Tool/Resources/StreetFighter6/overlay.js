@@ -11,7 +11,8 @@ async function refresh() {
         const response = await fetch('/api/state', { cache: 'no-store' });
         if (!response.ok) throw Error('Match connection unavailable');
         const saved = await response.json();
-        if (saved.gameId !== 'street-fighter-6') return;
+        if (saved.gameId !== 'street-fighter-6') { document.body.hidden = true; previous = ''; return; }
+        document.body.hidden = false;
         const signature = JSON.stringify(saved.match);
         if (signature === previous) return;
         if (!characters) {

@@ -57,3 +57,7 @@ npm test
 Integration tests cover both real game profiles, SF6 fighters and score limits, caster removal, publishing, score normalization, invalid updates, stale-game rejection, layout routes, per-game isolation, restart persistence and local-only access. An additional test-only profile exercises generic switching.
 
 Actual OBS capture and a packaged Windows build still require verification. Preserve the original credits and asset provenance documented in README.md and INITIAL_ANALYSIS.md.
+
+
+### Street Fighter versus screen
+Select Street Fighter 6, then use **Street Fighter VS preview** or **Copy SF6 VS URL**. Dedicated OBS browser source: `http://127.0.0.1:1111/overlay/versus?game=street-fighter-6` (1920 x 1080). This source is blank when another game is selected. Publish live to update its schools, players, fighters and primary colors.

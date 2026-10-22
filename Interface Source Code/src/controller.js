@@ -165,6 +165,7 @@ async function init() {
         Object.assign(match, { currentSet:1, currentBattle:1, round:'' });
         const original = live; await paint({ ...live, match }); live = original; edited();
     };
+    $('copySf6VsUrl').onclick = async () => { const url = location.origin + '/overlay/versus?game=street-fighter-6'; try { await navigator.clipboard.writeText(url); status('Street Fighter VS URL copied'); } catch { status('SF6 VS URL: ' + url); } };
     $('copyObsUrl').onclick = async () => { try { await navigator.clipboard.writeText(location.origin + '/overlay/scoreboard'); status('OBS scoreboard URL copied'); } catch { status('OBS URL: ' + location.origin + '/overlay/scoreboard'); } };
     document.querySelectorAll('[data-preview]').forEach(button => { button.onclick = () => { $('previewPanel').hidden = false; $('previewTitle').textContent = button.textContent + ' · live'; $('previewFrame').src = '/overlay/' + button.dataset.preview; }; });
     $('closePreview').onclick = () => { $('previewPanel').hidden = true; $('previewFrame').removeAttribute('src'); };
