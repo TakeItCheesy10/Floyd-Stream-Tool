@@ -7,3 +7,5 @@
 .smash-art{top:40px;left:6%;width:88%;height:72%;object-position:center bottom}.stage-card{background:linear-gradient(110deg,color-mix(in srgb,var(--p1-primary),white 94%),color-mix(in srgb,var(--p2-primary),white 94%))}
 
 .challenger{--presence:var(--p1-presence,.8)}.challenger.away{--presence:var(--p2-presence,.8)}.fighter-backdrop{opacity:calc(.3 + var(--presence)*.8)}
+
+.smash-art{top:0;left:1%;width:98%;height:84%}.character-icon{width:48px;height:48px;flex-basis:48px}

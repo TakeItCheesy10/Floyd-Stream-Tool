@@ -44,16 +44,17 @@ function buildPlayers() {
         const fighterControls = node('div', 'fighter-controls');
         const portrait = node('div', 'fighter-portrait'); const image = node('img'); image.id = p + 'Art'; image.alt = ''; image.hidden = true; portrait.append(image, node('span', '', '?'));
         const fighterFields = node('div', 'fighter-fields'); fighterFields.append(field('Character', p + 'Character', { options: [] }));
-        const mini = node('div', 'mini-fields smash-only'); mini.append(field('Costume', p + 'Skin', { options: [['1', '1']] }), field('Color', p + 'Color', { options: Object.values(info.colorSlots).map(c => [c.name, c.name]) }));
-        const extras = node('div', 'mini-fields legacy-fields'); extras.append(field('Pronouns', p + 'Pron'), field('Bracket side', p + 'WL', { options: [['None', 'Nada'], ['Winners', 'W'], ['Losers', 'L']] }));
+        const mini = node('div', 'costume-picker smash-only');
+        const skin = document.createElement('input'); skin.type = 'hidden'; skin.id = p + 'Skin'; skin.value = '1'; controls[p + 'Skin'] = skin;
+        const icons = node('div', 'costume-icons'); icons.id = p + 'Costumes'; icons.setAttribute('role','group'); icons.setAttribute('aria-label',side + ' costume');
+        mini.append(node('span','costume-label','Costume'),skin,icons);
         const branding = node('div', 'school-branding');
         const schoolColors = node('div', 'mini-fields');
         schoolColors.append(field('School primary color', p + 'PrimaryColor', { type: 'color' }), field('School secondary color', p + 'SecondaryColor', { type: 'color' }));
-        branding.append(schoolColors, field('VS school-color presence', p + 'VsColorStrength', { options: [['Bold', 'bold'], ['Balanced', 'balanced'], ['Subtle', 'subtle']] }));
-        fighterFields.append(branding, mini, extras); fighterControls.append(portrait, fighterFields);
+        branding.append(schoolColors);
+        fighterFields.append(mini, branding); fighterControls.append(portrait, fighterFields);
         panel.append(head, teamRow, playerRow, fighterControls); $('players').append(panel);
         controls[p + 'Character'].onchange = async () => { await loadSkins(p, '1'); updateArt(p); };
-        controls[p + 'Skin'].onchange = () => updateArt(p);
     }
 }
 async function loadSkins(p, selected) {
@@ -64,8 +65,15 @@ async function loadSkins(p, selected) {
         catch { skins = ['1']; }
     }
     if (controls[p + 'Character'].value !== character) return;
-    controls[p + 'Skin'].replaceChildren(...skins.map(s => new Option('Costume '+s,s)));
     controls[p + 'Skin'].value = skins.includes(String(selected)) ? String(selected) : skins[0];
+    const host = $(p+'Costumes'); host.replaceChildren();
+    if(sf6() || character==='Random') { host.append(node('small','','Select a fighter to choose a costume')); return; }
+    for(const value of skins) {
+        const button=node('button','costume-option');button.type='button';button.title='Costume '+value;button.setAttribute('aria-label',(p==='p1'?'Home':'Away')+' costume '+value);
+        button.setAttribute('aria-pressed',String(value===controls[p+'Skin'].value));
+        const icon=node('img');icon.src='/Resources/Characters/Stock%20Icons/'+encodeURIComponent(character)+'/'+encodeURIComponent(value)+'.png';icon.alt='';button.append(icon);
+        button.onclick=()=>{controls[p+'Skin'].value=value;host.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));updateArt(p);edited();};host.append(button);
+    }
 }
 function updateArt(p) {
     const character = controls[p + 'Character'].value;
@@ -107,6 +115,7 @@ function draft() {
     for (const [key, input] of Object.entries(controls)) match[key] = input.type === 'checkbox' ? input.checked : input.value;
     for (const key of ['bestOf', 'format']) match[key] = $(key).value;
     match.allowIntro = $('allowIntro').checked;
+    for(const p of ['p1','p2'])match[p+'VsColorStrength']='bold';
     if(!sf6())match.stage=$('stage').value||'Random';
     if (sf6()) {
         match.currentSet = Math.min(Number(match.currentSet || 1), match.bestOf === 'Bo5' ? 5 : 3);
