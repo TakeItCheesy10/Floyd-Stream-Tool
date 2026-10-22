@@ -171,7 +171,7 @@ async function init() {
     $('reset').onclick = async () => {
         if (busy) return; const match = draft();
         for (const p of ['p1','p2']) Object.assign(match, { [p+'Name']:'', [p+'Team']:'', [p+'Pron']:'', [p+'NScore']:'0', [p+'BattleScore']:0, [p+'Character']:'Random', [p+'Skin']:'1', [p+'WL']:'Nada' });
-        Object.assign(match, { currentSet:1, currentBattle:1, round:'' });
+        Object.assign(match, { currentSet:1, currentBattle:1, round:'', stage:'Random' });
         const original = live; await paint({ ...live, match }); live = original; edited();
     };
     $('resetSelections').onclick=async()=>{

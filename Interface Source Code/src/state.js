@@ -100,6 +100,7 @@ function createStore({ dataDir, textsDir, games }) {
     } else {
         const seed = JSON.parse(fs.readFileSync(path.join(textsDir, 'ScoreboardInfo.json'), 'utf8'));
         seed.p1NScore ||= '0'; seed.p2NScore ||= '0';
+        Object.assign(seed,{p1Character:'Random',p2Character:'Random',p1Skin:'1',p2Skin:'1',stage:'Random'});
         state = { version: 1, activeGame: games[0].id, revision: Date.now(), matches: { [games[0].id]: validate(games[0].id, seed) } };
         atomicJson(file, state);
     }

@@ -19,6 +19,7 @@ async function refresh() {
         if (requiredGame && data.gameId !== requiredGame) {
             pendingFrame?.remove(); pendingFrame = null;
             currentFrame?.remove(); currentFrame = null; activeGame = null;
+            setTimeout(refresh, 500);
             return;
         }
         if (data.gameId !== activeGame && !pendingFrame) {
