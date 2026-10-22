@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 let profiles = [], info, live, dirty = false, busy = false, loading = false;
-let revision = 0;
+let revision = 0, disconnected = false;
 const controls = {};
 const sf6 = () => live?.gameId === 'street-fighter-6';
 function status(message, state = 'live') { $('publishStatus').textContent = message; $('publishStatus').dataset.state = state; }
@@ -141,12 +141,16 @@ async function refresh() {
     try {
         if (!busy && !loading && live) {
             const changed = await api('/api/last-update');
+            if (disconnected) {
+                status(dirty ? 'Unpublished changes' : 'LIVE · All changes published', dirty ? 'pending' : 'live');
+                disconnected = false;
+            }
             if (changed.timestamp !== live.timestamp) {
                 if (dirty) status('Live match changed. Discard edits to reload it.', 'pending');
                 else await paint(await api('/api/state'));
             }
         }
-    } catch { status('Disconnected · keep the desktop app running', 'error'); }
+    } catch { disconnected = true; status('Disconnected · keep the desktop app running', 'error'); }
     setTimeout(refresh, 1000);
 }
 async function init() {
