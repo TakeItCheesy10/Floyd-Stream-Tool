@@ -75,3 +75,5 @@ body.sf6-versus{background:#080a10}
 .fight-heading>img:not(.sf6-wordmark){filter:drop-shadow(0 0 12px #ffffff20) drop-shadow(0 4px 5px #000)}
 .matchup-art{filter:drop-shadow(0 0 3px #ffffff55) drop-shadow(-15px 12px 20px #000000a8)}
 .fight-bottom>div{background:linear-gradient(90deg,var(--p1-primary),#ffffff60 49%,var(--p2-primary));box-shadow:none}
+
+.school-strip{display:flex;align-items:center;justify-content:space-between;gap:20px}.vs-team-score{font-size:42px;line-height:1;min-width:60px;text-align:center;border-left:2px solid #ffffff88;padding-left:15px}.vs-player-line{display:flex;align-items:center;justify-content:space-between;gap:20px}.vs-player-line h1{min-width:0}.vs-player-score{font-size:60px;line-height:1;min-width:65px;text-align:center;color:white;text-shadow:0 3px 8px #000}.away .vs-player-line,.away .school-strip{flex-direction:row-reverse}.away .vs-team-score{border-left:0;border-right:2px solid #ffffff88;padding-left:0;padding-right:15px}

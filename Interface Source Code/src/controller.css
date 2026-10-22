@@ -11,3 +11,7 @@ input[type=color]{height:40px;padding:4px;cursor:pointer}label.icon-toggle{justi
 .match-actions{position:static}
 
 .fighter-fields .sf6-only>label{margin-top:10px}
+
+.match-settings:has(#stage){grid-template-columns:minmax(240px,400px) auto;justify-content:start}.match-settings button{align-self:end}.school-branding>label{margin-top:10px}.fighter-fields label:has(select[id$="Color"]){display:none}.fighter-fields .mini-fields:has(select[id$="Color"]){grid-template-columns:1fr}
+
+.legacy-fields,.match-settings[aria-label="Match details"],.intro-toggle{display:none!important}

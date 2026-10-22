@@ -38,15 +38,15 @@ function buildPlayers() {
         const head = node('header', 'player-header'); head.append(node('strong', '', side.toUpperCase() + ' SIDE'), node('span', '', p === 'p1' ? 'PLAYER 1 · F1' : 'PLAYER 2 · F2'));
         const teamRow = node('div', 'competitor-row');
         const playerRow = node('div', 'competitor-row');
-        const series = scoreField(p, 'NScore', sf6() ? 'Team set wins' : 'Player score');
+        const series = scoreField(p, 'NScore', 'Team set wins');
         teamRow.append(field('School / team', p + 'Team'), series);
-        playerRow.append(field('Player / gamertag', p + 'Name'), scoreField(p, 'BattleScore', 'Battle wins', true));
+        playerRow.append(field('Player / gamertag', p + 'Name'), scoreField(p, 'BattleScore', 'Player wins'));
         const fighterControls = node('div', 'fighter-controls');
         const portrait = node('div', 'fighter-portrait'); const image = node('img'); image.id = p + 'Art'; image.alt = ''; image.hidden = true; portrait.append(image, node('span', '', '?'));
         const fighterFields = node('div', 'fighter-fields'); fighterFields.append(field('Character', p + 'Character', { options: [] }));
-        const mini = node('div', 'mini-fields smash-only'); mini.append(field('Skin', p + 'Skin', { options: [['1', '1']] }), field('Color', p + 'Color', { options: Object.values(info.colorSlots).map(c => [c.name, c.name]) }));
-        const extras = node('div', 'mini-fields smash-only'); extras.append(field('Pronouns', p + 'Pron'), field('Bracket side', p + 'WL', { options: [['None', 'Nada'], ['Winners', 'W'], ['Losers', 'L']] }));
-        const branding = node('div', 'sf6-only');
+        const mini = node('div', 'mini-fields smash-only'); mini.append(field('Costume', p + 'Skin', { options: [['1', '1']] }), field('Color', p + 'Color', { options: Object.values(info.colorSlots).map(c => [c.name, c.name]) }));
+        const extras = node('div', 'mini-fields legacy-fields'); extras.append(field('Pronouns', p + 'Pron'), field('Bracket side', p + 'WL', { options: [['None', 'Nada'], ['Winners', 'W'], ['Losers', 'L']] }));
+        const branding = node('div', 'school-branding');
         const schoolColors = node('div', 'mini-fields');
         schoolColors.append(field('School primary color', p + 'PrimaryColor', { type: 'color' }), field('School secondary color', p + 'SecondaryColor', { type: 'color' }));
         branding.append(schoolColors, field('VS school-color presence', p + 'VsColorStrength', { options: [['Bold', 'bold'], ['Balanced', 'balanced'], ['Subtle', 'subtle']] }));
@@ -64,7 +64,7 @@ async function loadSkins(p, selected) {
         catch { skins = ['1']; }
     }
     if (controls[p + 'Character'].value !== character) return;
-    controls[p + 'Skin'].replaceChildren(...skins.map(s => new Option(s, s)));
+    controls[p + 'Skin'].replaceChildren(...skins.map(s => new Option('Costume '+s,s)));
     controls[p + 'Skin'].value = skins.includes(String(selected)) ? String(selected) : skins[0];
 }
 function updateArt(p) {
@@ -73,7 +73,7 @@ function updateArt(p) {
     const fighter = profile.characters.find(c => c.name === character);
     const image = $(p + 'Art'); image.hidden = !fighter || character === 'Random';
     image.onerror = () => { image.hidden = true; };
-    if (fighter) { image.src = sf6() ? fighter.art : character === 'Random' ? fighter.art : `/Resources/Characters/Renders/${encodeURIComponent(character)}/${encodeURIComponent(controls[p + 'Skin'].value || '1')}.webp`; image.alt = character; }
+    if (fighter) { image.src = sf6() ? fighter.art : character === 'Random' ? fighter.art : `/Resources/Characters/Renders/${encodeURIComponent(character)}/${encodeURIComponent(controls[p + 'Skin'].value || '1')}.webp`; image.alt = character; if(!sf6() && character!=='Random')showSmashFighter(image,image.getAttribute('src')); }
 }
 async function paint(saved) {
     loading = true;
@@ -83,7 +83,7 @@ async function paint(saved) {
         const profile = profiles.find(g => g.id === live.gameId);
         for (const p of ['p1', 'p2']) {
             const options = profile.characters.filter(c => c.name !== 'Random').map(c => new Option(c.name, c.name));
-            controls[p + 'Character'].replaceChildren(new Option(sf6() ? 'Select fighter' : 'Random', 'Random'), ...options);
+            controls[p + 'Character'].replaceChildren(new Option('Select fighter (?)', 'Random'), ...options);
         }
         for (const [key, input] of Object.entries(controls)) {
             if (input.type === 'checkbox') input.checked = live.match[key] ?? true;
@@ -91,8 +91,9 @@ async function paint(saved) {
         }
         for (const key of ['bestOf', 'format']) $(key).value = live.match[key] ?? (key.startsWith('current') ? 1 : '');
         $('allowIntro').checked = Boolean(live.match.allowIntro);
+        $('stage').value=live.match.stage==='Random'?'':live.match.stage||'';
         await Promise.all(['p1', 'p2'].map(async p => { await loadSkins(p, live.match[p + 'Skin']); updateArt(p); }));
-        $('shortcutHint').textContent = sf6() ? 'F1 / F2: increase battle wins · Enter: publish' : 'F1 / F2: increase player score · Enter: publish';
+        $('shortcutHint').textContent = 'F1 / F2: increase player wins · Enter: publish';
         setLimits(); dirty = false; status('LIVE · All changes published');
     } finally { loading = false; }
 }
@@ -106,6 +107,7 @@ function draft() {
     for (const [key, input] of Object.entries(controls)) match[key] = input.type === 'checkbox' ? input.checked : input.value;
     for (const key of ['bestOf', 'format']) match[key] = $(key).value;
     match.allowIntro = $('allowIntro').checked;
+    if(!sf6())match.stage=$('stage').value||'Random';
     if (sf6()) {
         match.currentSet = Math.min(Number(match.currentSet || 1), match.bestOf === 'Bo5' ? 5 : 3);
         match.p1ShowCharacterIcon = match.p2ShowCharacterIcon = true;
@@ -172,12 +174,20 @@ async function init() {
         Object.assign(match, { currentSet:1, currentBattle:1, round:'' });
         const original = live; await paint({ ...live, match }); live = original; edited();
     };
+    $('resetSelections').onclick=async()=>{
+      if(busy||loading||sf6())return;busy=true;
+      try {const pending=draft(),hadEdits=dirty;const saved=await api('/api/reset-selections',{});
+       Object.assign(pending,{p1Character:'Random',p2Character:'Random',p1Skin:'1',p2Skin:'1',stage:'Random'});
+       await paint({...saved,match:hadEdits?pending:saved.match});live=saved;if(hadEdits)edited();else status('LIVE · Fighters and stage reset');
+      }catch(e){status(e.message,'error')}finally{busy=false}
+    };
+    $('copySmashVsUrl').onclick=async()=>{const url=location.origin+'/overlay/versus?game=smash-ultimate';try{await navigator.clipboard.writeText(url);status('Smash VS URL copied')}catch{status(url)}};
     $('copySf6VsUrl').onclick = async () => { const url = location.origin + '/overlay/versus?game=street-fighter-6'; try { await navigator.clipboard.writeText(url); status('Street Fighter VS URL copied'); } catch { status('SF6 VS URL: ' + url); } };
     $('copyObsUrl').onclick = async () => { try { await navigator.clipboard.writeText(location.origin + '/overlay/scoreboard'); status('OBS scoreboard URL copied'); } catch { status('OBS URL: ' + location.origin + '/overlay/scoreboard'); } };
     document.querySelectorAll('[data-preview]').forEach(button => { button.onclick = () => { $('previewPanel').hidden = false; $('previewTitle').textContent = button.textContent + ' · live'; $('previewFrame').src = '/overlay/' + button.dataset.preview; }; });
     $('closePreview').onclick = () => { $('previewPanel').hidden = true; $('previewFrame').removeAttribute('src'); };
     document.addEventListener('keydown', event => {
-        if (event.key === 'F1' || event.key === 'F2') { event.preventDefault(); adjust((event.key === 'F1' ? 'p1' : 'p2') + (sf6() ? 'BattleScore' : 'NScore'), 1); }
+        if (event.key === 'F1' || event.key === 'F2') { event.preventDefault(); adjust((event.key === 'F1' ? 'p1' : 'p2') + 'BattleScore', 1); }
         if (event.key === 'Enter' && event.target.tagName !== 'BUTTON') { event.preventDefault(); publish(); }
     });
     refresh();

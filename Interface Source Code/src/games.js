@@ -1,8 +1,8 @@
 const { characters } = require('./sf6-characters');
-const { validateStreetFighter } = require('./state');
+const { validateStreetFighter, validateSmash } = require('./state');
 const games = [{
     id: 'smash-ultimate', name: 'Super Smash Bros. Ultimate',
-    layouts: { scoreboard: 'Game Scoreboard.html', versus: 'VS Screen.html' }
+    validate: validateSmash, layouts: { scoreboard: 'Smash Scoreboard.html', versus: 'Smash VS.html' }
 }, {
     id: 'street-fighter-6', name: 'Street Fighter 6', characters,
     defaults: { p1Color: 'Blue', p2Color: 'Red', bestOf: 'Bo5', tournamentName: 'Floyd Esports' },

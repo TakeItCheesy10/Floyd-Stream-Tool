@@ -41,6 +41,7 @@ function createApp(options = {}) {
     });
     app.get('/api/last-update', (req, res) => res.json({ timestamp: store.snapshot().revision }));
     app.post('/api/game', (req, res) => res.json(store.select(req.body?.gameId)));
+    app.post('/api/reset-selections', (req,res)=>res.json(store.resetSelections()));
     app.post('/api/scoreboard', (req, res) => res.json(store.publish(req.body)));
     app.get('/Resources/Texts/ScoreboardInfo.json', (req, res) => res.json(store.current().match));
     // Plain text OBS sources are served from saved state too; no tracked seed files are changed.

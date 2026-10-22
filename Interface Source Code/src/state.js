@@ -41,6 +41,16 @@ function validateMatch(input, info) {
     result.allowIntro = input.allowIntro ?? false;
     return result;
 }
+function validateSmash(input, info) {
+ const r=validateMatch(input,info);
+ for(const p of ['p1','p2']) {
+  const n=input[p+'BattleScore']??0;if(!/^[0-2]$/.test(String(n))) invalid('Player wins must be 0, 1, or 2');r[p+'BattleScore']=Number(n);
+  for(const k of ['PrimaryColor','SecondaryColor']) {const c=input[p+k]??(k==='SecondaryColor'?'#ffffff':p==='p1'?'#203cff':'#ff3126');if(typeof c!=='string'||!/^#[0-9a-f]{6}$/i.test(c))invalid('Invalid school color');r[p+k]=c;}
+  if(!/^[1-8]$/.test(r[p+'Skin']))invalid('Unknown Smash costume');
+  const strength=input[p+'VsColorStrength']??'bold';if(!['bold','balanced','subtle'].includes(strength))invalid('Invalid color strength');r[p+'VsColorStrength']=strength;
+ }
+ if(input.stage!=null&&(typeof input.stage!=='string'||input.stage.length>200))invalid('Invalid stage');r.stage=input.stage||'Random';return r;
+}
 function validateStreetFighter(input, info) {
     const { characters } = require('./sf6-characters');
     const result = validateMatch(input, { ...info, charactersBase: ['Random', ...characters.map(c => c.name)] });
@@ -110,6 +120,10 @@ function createStore({ dataDir, textsDir, games }) {
             next.matches[id] ||= validate(id, games.find(g => g.id === id).defaults || {});
             return commit(next);
         },
+        resetSelections() {
+            if(state.activeGame!=='smash-ultimate')invalid('Smash only');
+            const next=structuredClone(state);Object.assign(next.matches[state.activeGame],{p1Character:'Random',p2Character:'Random',p1Skin:'1',p2Skin:'1',stage:'Random'});return commit(next);
+        },
         publish(input) {
             if (!input || input.gameId !== state.activeGame) invalid('The live game changed. Reload before publishing.', 409);
             const next = structuredClone(state);
@@ -118,4 +132,4 @@ function createStore({ dataDir, textsDir, games }) {
         }
     };
 }
-module.exports = { createStore, validateMatch, validateStreetFighter };
+module.exports = { createStore, validateMatch, validateStreetFighter, validateSmash };

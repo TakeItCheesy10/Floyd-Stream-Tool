@@ -133,3 +133,21 @@ test('Street Fighter uses its own fighter roster, set wins and battle wins', asy
     const active = await request('/api/active-game');
     assert.deepEqual(Object.keys(active.data.layouts), ['scoreboard','versus']);
 });
+
+test('Smash two-level scores, costumes, stage and atomic selection reset survive restart', async t => {
+ const dataDir=fs.mkdtempSync(path.join(os.tmpdir(),'floyd-smash-'));
+ let service=await startServer({port:0,dataDir});
+ t.after(async()=>{await new Promise(r=>service.server.close(r));fs.rmSync(dataDir,{recursive:true,force:true})});
+ const post=async(route,body)=>{const r=await fetch(service.url+route,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return {status:r.status,data:await r.json()}};
+ const state=await fetch(service.url+'/api/state').then(r=>r.json());
+ const match={...state.match,gameId:'smash-ultimate',p1Team:'Floyd',p2Team:'Away',p1Name:'Mr.Cheese',p2Name:'Guest',p1NScore:'2',p2NScore:'1',p1BattleScore:1,p2BattleScore:2,p1Character:'Sora',p2Character:'Steve',p1Skin:'8',p2Skin:'4',stage:'Small Battlefield',p1PrimaryColor:'#0022ff',p1SecondaryColor:'#ffffff'};
+ const saved=await post('/api/scoreboard',match);assert.equal(saved.status,200);assert.equal(saved.data.match.p1Skin,'8');assert.equal(saved.data.match.p1BattleScore,1);
+ assert.equal((await post('/api/scoreboard',{...match,p1BattleScore:3})).status,400);
+ assert.equal((await post('/api/scoreboard',{...match,p1Skin:'99'})).status,400);
+ const reset=await post('/api/reset-selections',{});assert.equal(reset.status,200);
+ for(const key of Object.keys(saved.data.match)){if(['p1Character','p2Character','p1Skin','p2Skin','stage'].includes(key))continue;assert.deepEqual(reset.data.match[key],saved.data.match[key],key)}
+ assert.equal(reset.data.match.p1Character,'Random');assert.equal(reset.data.match.p2Character,'Random');assert.equal(reset.data.match.stage,'Random');
+ await new Promise(r=>service.server.close(r));service=await startServer({port:0,dataDir});
+ const restored=await fetch(service.url+'/api/state').then(r=>r.json());assert.deepEqual(restored.match,reset.data.match);
+ await post('/api/game',{gameId:'street-fighter-6'});assert.equal((await post('/api/reset-selections',{})).status,400);
+});
