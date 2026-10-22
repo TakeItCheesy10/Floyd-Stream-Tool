@@ -54,6 +54,12 @@ function validateStreetFighter(input, info) {
         const primary = input[`${p}PrimaryColor`] ?? (p === 'p1' ? '#203cff' : '#ff3126');
         if (typeof primary !== 'string' || !/^#[0-9a-f]{6}$/i.test(primary)) invalid('School primary color must be a six-digit hex color');
         result[`${p}PrimaryColor`] = primary.toLowerCase();
+        const secondary = input[`${p}SecondaryColor`] ?? '#ffffff';
+        if (typeof secondary !== 'string' || !/^#[0-9a-f]{6}$/i.test(secondary)) invalid('School secondary color must be a six-digit hex color');
+        result[`${p}SecondaryColor`] = secondary.toLowerCase();
+        const strength = input[`${p}VsColorStrength`] ?? 'bold';
+        if (!['subtle', 'balanced', 'bold'].includes(strength)) invalid('Unknown VS color strength');
+        result[`${p}VsColorStrength`] = strength;
         const showIcon = input[`${p}ShowCharacterIcon`] ?? true;
         if (typeof showIcon !== 'boolean') invalid('Show character icon must be true or false');
         result[`${p}ShowCharacterIcon`] = showIcon;

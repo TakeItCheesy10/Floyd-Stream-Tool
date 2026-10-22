@@ -46,7 +46,10 @@ function buildPlayers() {
         const fighterFields = node('div', 'fighter-fields'); fighterFields.append(field('Character', p + 'Character', { options: [] }));
         const mini = node('div', 'mini-fields smash-only'); mini.append(field('Skin', p + 'Skin', { options: [['1', '1']] }), field('Color', p + 'Color', { options: Object.values(info.colorSlots).map(c => [c.name, c.name]) }));
         const extras = node('div', 'mini-fields smash-only'); extras.append(field('Pronouns', p + 'Pron'), field('Bracket side', p + 'WL', { options: [['None', 'Nada'], ['Winners', 'W'], ['Losers', 'L']] }));
-        const branding = node('div', 'sf6-only'); branding.append(field('School primary color', p + 'PrimaryColor', { type: 'color' }));
+        const branding = node('div', 'sf6-only');
+        const schoolColors = node('div', 'mini-fields');
+        schoolColors.append(field('School primary color', p + 'PrimaryColor', { type: 'color' }), field('School secondary color', p + 'SecondaryColor', { type: 'color' }));
+        branding.append(schoolColors, field('VS school-color presence', p + 'VsColorStrength', { options: [['Bold', 'bold'], ['Balanced', 'balanced'], ['Subtle', 'subtle']] }));
         fighterFields.append(branding, mini, extras); fighterControls.append(portrait, fighterFields);
         panel.append(head, teamRow, playerRow, fighterControls); $('players').append(panel);
         controls[p + 'Character'].onchange = async () => { await loadSkins(p, '1'); updateArt(p); };
@@ -84,7 +87,7 @@ async function paint(saved) {
         }
         for (const [key, input] of Object.entries(controls)) {
             if (input.type === 'checkbox') input.checked = live.match[key] ?? true;
-            else input.value = live.match[key] ?? (key.endsWith('PrimaryColor') ? (key.startsWith('p1') ? '#203cff' : '#ff3126') : key.endsWith('BattleScore') ? '0' : '');
+            else input.value = live.match[key] ?? (key.endsWith('SecondaryColor') ? '#ffffff' : key.endsWith('VsColorStrength') ? 'bold' : key.endsWith('PrimaryColor') ? (key.startsWith('p1') ? '#203cff' : '#ff3126') : key.endsWith('BattleScore') ? '0' : '');
         }
         for (const key of ['bestOf', 'format']) $(key).value = live.match[key] ?? (key.startsWith('current') ? 1 : '');
         $('allowIntro').checked = Boolean(live.match.allowIntro);
@@ -156,7 +159,7 @@ async function init() {
     $('discard').onclick = async () => { if (busy) return; try { await paint(await api('/api/state')); } catch (error) { status(error.message, 'error'); } };
     $('swap').onclick = async () => {
         if (busy) return; const match = draft();
-        for (const suffix of ['Name','Team','Pron','NScore','BattleScore','Character','Skin','Color','WL','PrimaryColor','ShowCharacterIcon']) [match['p1' + suffix], match['p2' + suffix]] = [match['p2' + suffix], match['p1' + suffix]];
+        for (const suffix of ['Name','Team','Pron','NScore','BattleScore','Character','Skin','Color','WL','PrimaryColor','SecondaryColor','VsColorStrength','ShowCharacterIcon']) [match['p1' + suffix], match['p2' + suffix]] = [match['p2' + suffix], match['p1' + suffix]];
         const original = live; await paint({ ...live, match }); live = original; edited();
     };
     $('reset').onclick = async () => {

@@ -9,3 +9,5 @@ input[type=color]{height:40px;padding:4px;cursor:pointer}label.icon-toggle{justi
 .series-picker{width:170px;flex:0 0 170px}.live-toolbar{align-items:center}body[data-game="street-fighter-6"] .players{margin-top:16px}@media(max-width:1050px){.live-toolbar{flex-wrap:wrap}.live-state{min-width:180px}}
 
 .match-actions{position:static}
+
+.fighter-fields .sf6-only>label{margin-top:10px}

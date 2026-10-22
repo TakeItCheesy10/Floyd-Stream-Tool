@@ -67,7 +67,35 @@
         ctx.globalAlpha = 1;
     }
     draw();
+    // Independent spotlights choose a fresh path, duration and pause on every pass.
+    const lights = document.querySelector('.light-sweep');
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
+    if (lights && !motion.matches) {
+        for (let i = 0; i < 6; i++) {
+            const beam = document.createElement('i'); beam.className = 'random-beam';
+            const side = i < 3 ? 'p1' : 'p2';
+            const isSecondary = i % 3 === 1;
+            beam.style.setProperty('--beam-color', 'var(--' + side + (isSecondary ? '-secondary)' : '-primary)'));
+            lights.append(beam);
+            const pass = () => {
+                if (motion.matches) { beam.style.opacity = '0'; return; }
+                const home = side === 'p1';
+                const start = (home ? -160 : 1100) + Math.random() * 650;
+                const end = (home ? -50 : 980) + Math.random() * 750;
+                const angle = -38 + Math.random() * 76;
+                const peak = isSecondary ? .04 + Math.random() * .055 : .08 + Math.random() * .14;
+                const duration = 4800 + Math.random() * 7800;
+                const pause = 200 + Math.random() * 3800;
+                const animation = beam.animate([
+                    {transform:'translateX(' + start + 'px) rotate(' + angle + 'deg)', opacity:0},
+                    {transform:'translateX(' + (start*.65+end*.35) + 'px) rotate(' + (angle+8) + 'deg)', opacity:peak,offset:.23+Math.random()*.18},
+                    {transform:'translateX(' + end + 'px) rotate(' + (angle-14+Math.random()*28) + 'deg)', opacity:0}
+                ], {duration, delay:pause, easing:'cubic-bezier(.35,0,.65,1)', fill:'forwards'});
+                animation.onfinish = () => { animation.cancel(); pass(); };
+            };
+            pass();
+        }
+    }
     let last = 0;
     function tick(time) {
         if (!motion.matches && !document.hidden && !document.body.hidden && time-last > 33) { draw(time); last = time; }

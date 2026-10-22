@@ -61,3 +61,5 @@ Actual OBS capture and a packaged Windows build still require verification. Pres
 
 ### Street Fighter versus screen
 Select Street Fighter 6, then use **Street Fighter VS preview** or **Copy SF6 VS URL**. Dedicated OBS browser source: `http://127.0.0.1:1111/overlay/versus?game=street-fighter-6` (1920 x 1080). This source is blank when another game is selected. Publish live to update its schools, players, fighters and primary colors.
+
+For Street Fighter, each side has primary and secondary school colors plus a VS school-color presence setting (Bold, Balanced, Subtle). Publish live to apply these to the arena glow, brush fields, independent randomized spotlights and identity trim. These settings swap with the school and are preserved between sessions.

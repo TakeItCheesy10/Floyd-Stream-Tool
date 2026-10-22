@@ -22,6 +22,12 @@ async function refresh() {
         const match = saved.match;
         document.body.style.setProperty('--blue', match.p1PrimaryColor || '#203cff');
         document.body.style.setProperty('--red', match.p2PrimaryColor || '#ff3126');
+        for (const p of ['p1', 'p2']) {
+            document.body.style.setProperty('--' + p + '-primary', match[p + 'PrimaryColor'] || (p === 'p1' ? '#203cff' : '#ff3126'));
+            document.body.style.setProperty('--' + p + '-secondary', match[p + 'SecondaryColor'] || '#ffffff');
+            document.querySelectorAll('.fight-side.' + (p === 'p1' ? 'home' : 'away')).forEach(side => side.dataset.colorStrength = match[p + 'VsColorStrength'] || 'bold');
+            document.body.style.setProperty('--' + p + '-presence', ({subtle:'.25',balanced:'.5',bold:'.8'})[match[p + 'VsColorStrength']] || '.8');
+        }
         const max = match.bestOf === 'Bo3' ? 2 : 3;
         text('eventName', match.tournamentName || 'FLOYD ESPORTS');
         text('roundName', match.round || 'MATCH DAY');
