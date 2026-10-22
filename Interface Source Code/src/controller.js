@@ -31,20 +31,24 @@ function scoreField(p, suffix, label, sfOnly = false) {
 }
 function buildPlayers() {
     $('players').replaceChildren();
+    for (const key of Object.keys(controls)) delete controls[key];
     for (const p of ['p1', 'p2']) {
         const side = p === 'p1' ? 'home' : 'away';
         const panel = node('article', 'player ' + side);
         const head = node('header', 'player-header'); head.append(node('strong', '', side.toUpperCase() + ' SIDE'), node('span', '', p === 'p1' ? 'PLAYER 1 · F1' : 'PLAYER 2 · F2'));
-        const identity = node('div', 'identity-fields'); identity.append(field('School / team', p + 'Team'), field('Player / gamertag', p + 'Name'));
+        const teamRow = node('div', 'competitor-row');
+        const playerRow = node('div', 'competitor-row');
+        const series = scoreField(p, 'NScore', sf6() ? 'Team set wins' : 'Player score');
+        teamRow.append(field('School / team', p + 'Team'), series);
+        playerRow.append(field('Player / gamertag', p + 'Name'), scoreField(p, 'BattleScore', 'Battle wins', true));
         const fighterControls = node('div', 'fighter-controls');
         const portrait = node('div', 'fighter-portrait'); const image = node('img'); image.id = p + 'Art'; image.alt = ''; image.hidden = true; portrait.append(image, node('span', '', '?'));
         const fighterFields = node('div', 'fighter-fields'); fighterFields.append(field('Character', p + 'Character', { options: [] }));
         const mini = node('div', 'mini-fields smash-only'); mini.append(field('Skin', p + 'Skin', { options: [['1', '1']] }), field('Color', p + 'Color', { options: Object.values(info.colorSlots).map(c => [c.name, c.name]) }));
         const extras = node('div', 'mini-fields smash-only'); extras.append(field('Pronouns', p + 'Pron'), field('Bracket side', p + 'WL', { options: [['None', 'Nada'], ['Winners', 'W'], ['Losers', 'L']] }));
-        const branding = node('div', 'mini-fields sf6-only'); branding.append(field('School primary color', p + 'PrimaryColor', { type: 'color' }), field('Show character icon', p + 'ShowCharacterIcon', { type: 'checkbox', className: 'icon-toggle' }));
+        const branding = node('div', 'sf6-only'); branding.append(field('School primary color', p + 'PrimaryColor', { type: 'color' }));
         fighterFields.append(branding, mini, extras); fighterControls.append(portrait, fighterFields);
-        const scores = node('div', 'score-fields'); const series = scoreField(p, 'NScore', 'Set wins'); series.querySelector('label').firstChild.textContent = sf6() ? 'Team set wins' : 'Player score'; scores.append(series, scoreField(p, 'BattleScore', 'Battle wins', true));
-        panel.append(head, identity, fighterControls, scores); $('players').append(panel);
+        panel.append(head, teamRow, playerRow, fighterControls); $('players').append(panel);
         controls[p + 'Character'].onchange = async () => { await loadSkins(p, '1'); updateArt(p); };
         controls[p + 'Skin'].onchange = () => updateArt(p);
     }
@@ -82,7 +86,7 @@ async function paint(saved) {
             if (input.type === 'checkbox') input.checked = live.match[key] ?? true;
             else input.value = live.match[key] ?? (key.endsWith('PrimaryColor') ? (key.startsWith('p1') ? '#203cff' : '#ff3126') : key.endsWith('BattleScore') ? '0' : '');
         }
-        for (const key of ['tournamentName', 'round', 'bestOf', 'format', 'currentSet', 'currentBattle']) $(key).value = live.match[key] ?? (key.startsWith('current') ? 1 : '');
+        for (const key of ['bestOf', 'format']) $(key).value = live.match[key] ?? (key.startsWith('current') ? 1 : '');
         $('allowIntro').checked = Boolean(live.match.allowIntro);
         await Promise.all(['p1', 'p2'].map(async p => { await loadSkins(p, live.match[p + 'Skin']); updateArt(p); }));
         $('shortcutHint').textContent = sf6() ? 'F1 / F2: increase battle wins · Enter: publish' : 'F1 / F2: increase player score · Enter: publish';
@@ -92,13 +96,17 @@ async function paint(saved) {
 function setLimits() {
     const max = $('bestOf').value === 'Bo5' ? 3 : 2;
     for (const p of ['p1', 'p2']) controls[p + 'NScore'].max = sf6() ? max : 999;
-    $('currentSet').max = $('bestOf').value === 'Bo5' ? 5 : 3;
+
 }
 function draft() {
     const match = { ...live.match };
     for (const [key, input] of Object.entries(controls)) match[key] = input.type === 'checkbox' ? input.checked : input.value;
-    for (const key of ['tournamentName', 'round', 'bestOf', 'format', 'currentSet', 'currentBattle']) match[key] = $(key).value;
+    for (const key of ['bestOf', 'format']) match[key] = $(key).value;
     match.allowIntro = $('allowIntro').checked;
+    if (sf6()) {
+        match.currentSet = Math.min(Number(match.currentSet || 1), match.bestOf === 'Bo5' ? 5 : 3);
+        match.p1ShowCharacterIcon = match.p2ShowCharacterIcon = true;
+    }
     return match;
 }
 function adjust(id, delta) {

@@ -38,7 +38,7 @@ async function refresh() {
             const icon = $(`${p}Icon`);
             if (icon) {
                 const fighter = characters.find(c => c.name === match[`${p}Character`]);
-                icon.hidden = !fighter || match[`${p}ShowCharacterIcon`] === false;
+                icon.hidden = !fighter;
                 icon.onerror = () => { icon.hidden = true; };
                 if (fighter && icon.getAttribute('src') !== fighter.art) { icon.src = fighter.art; icon.alt = fighter.name; }
             }
