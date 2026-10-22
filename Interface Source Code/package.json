@@ -5,15 +5,11 @@
   "description": "Standalone esports scoreboard and OBS overlay controller",
   "main": "src/index.js",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish",
-    "lint": "echo \"No linting configured\"",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder",
+    "start": "electron .",
     "serve": "node src/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "pack": "electron-builder --dir --win --x64",
+    "dist": "electron-builder --win nsis --x64 --publish never"
   },
   "keywords": [],
   "author": {
@@ -21,65 +17,77 @@
     "email": "robertofiore2712@gmail.com"
   },
   "license": "MIT",
-  "config": {
-    "forge": {
-      "packagerConfig": {},
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "SSBU_ST_GUI"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ]
-    }
-  },
   "dependencies": {
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",
     "electron-squirrel-startup": "^1.0.0",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "electron-updater": "6.8.9"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^7.11.1",
-    "@electron-forge/maker-deb": "^7.11.1",
-    "@electron-forge/maker-rpm": "^7.11.1",
-    "@electron-forge/maker-squirrel": "^7.11.1",
-    "@electron-forge/maker-zip": "^7.11.1",
-    "electron": "^40.4.0",
-    "electron-builder": "^22.11.7",
-    "electron-packager": "^15.2.0"
+    "electron": "40.4.0",
+    "electron-builder": "26.15.3"
   },
   "build": {
     "appId": "com.takeitcheesy.floydstreamtool",
-    "win": {
-      "target": "portable"
+    "productName": "Floyd Stream Tool",
+    "artifactName": "Floyd-Stream-Tool-Setup-${version}.${ext}",
+    "directories": {
+      "output": "dist"
     },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "NOTICE.txt"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/floyd.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "TakeItCheesy10",
+        "repo": "Floyd-Stream-Tool",
+        "releaseType": "release"
+      }
+    ],
     "extraResources": [
       {
         "from": "../Stream Tool",
         "to": "Stream Tool",
         "filter": [
-          "**/*",
-          "!*.exe",
+          "Resources/**/*",
+          "Smash Scoreboard.html",
+          "Smash VS.html",
+          "Street Fighter Scoreboard.html",
+          "Street Fighter VS.html",
+          "Game Scoreboard.html",
+          "VS Screen.html",
+          "!**/.floyd-state/**",
           "!**/*.psd",
-          "!.floyd-state/**"
+          "!**/*.exe"
         ]
       }
     ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TakeItCheesy10/Floyd-Stream-Tool.git"
   }
 }

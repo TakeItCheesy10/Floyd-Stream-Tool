@@ -2,11 +2,11 @@ const { app, BrowserWindow, dialog, Tray, Menu, nativeImage } = require('electro
 const path = require('node:path');
 const fs = require('node:fs');
 function logLifecycle(message) {
-    try { const dir=path.join(resolveBaseDir(),'.floyd-state');fs.mkdirSync(dir,{recursive:true});fs.appendFileSync(path.join(dir,'runtime.log'),new Date().toISOString()+' '+message+'\n'); } catch {}
+    try { const dir=app.isPackaged ? app.getPath('userData') : path.join(resolveBaseDir(),'.floyd-state');fs.mkdirSync(dir,{recursive:true});fs.appendFileSync(path.join(dir,'runtime.log'),new Date().toISOString()+' '+message+'\n'); } catch {}
 }
 const { startServer, resolveBaseDir } = require('./server');
 // Keep strong references: the window and tray own the local broadcast session.
-let service, mainWindow, tray, quitting = false;
+let service, mainWindow, tray, updates, quitting = false;
 if (require('electron-squirrel-startup')) app.quit();
 const singleInstance = app.requestSingleInstanceLock();
 if (!singleInstance) app.quit();
@@ -41,6 +41,7 @@ function createTray() {
     tray.setContextMenu(Menu.buildFromTemplate([
         { label: 'Open Floyd Stream Tool', click: showWindow },
         { label: 'Closing the window keeps OBS connected', enabled: false },
+        { label: 'Check for updates', enabled: Boolean(updates?.supported), click: () => updates.check().then(result=>dialog.showMessageBox({type:'info',message:result.message})).catch(error=>dialog.showMessageBox({type:'error',message:error.message})) },
         { type: 'separator' },
         { label: 'Quit Floyd Stream Tool', click: () => app.quit() }
     ]));
@@ -48,7 +49,11 @@ function createTray() {
 }
 app.on('second-instance', () => { if (service) showWindow(); });
 if (singleInstance) app.whenReady().then(async () => {
-    try { service = await startServer(); logLifecycle('Server listening '+service.url); createTray(); createWindow(); }
+    try {
+        const { prepareUserData } = require('./user-data');
+        const dataDir = app.isPackaged ? prepareUserData({userDataDir:app.getPath('userData'),legacyDataDir:path.join(resolveBaseDir(),'.floyd-state')}) : undefined;
+        updates = require('./updates').createUpdates({app,dialog,parent:()=>mainWindow,log:logLifecycle});
+        service = await startServer({dataDir,updates}); logLifecycle('Server listening '+service.url); createTray(); createWindow(); }
     catch (error) { dialog.showErrorBox('Floyd Stream Tool could not start', error.message); app.quit(); }
 });
 app.on('activate', () => { if (service) showWindow(); });

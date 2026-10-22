@@ -205,6 +205,8 @@ async function init() {
         if (event.key === 'F1' || event.key === 'F2') { event.preventDefault(); adjust((event.key === 'F1' ? 'p1' : 'p2') + 'BattleScore', 1); }
         if (event.key === 'Enter' && event.target.tagName !== 'BUTTON') { event.preventDefault(); publish(); }
     });
+    try { const application=await api('/api/application'); $('checkUpdates').hidden=!application.updatesSupported; $('updateStatus').textContent='v'+application.version; } catch {}
+    $('checkUpdates').onclick=async()=>{const button=$('checkUpdates');button.disabled=true;$('updateStatus').textContent='Checking for updates...';try{$('updateStatus').textContent=(await api('/api/updates/check',{})).message;}catch(error){$('updateStatus').textContent=error.message;}finally{button.disabled=false;}};
     refresh();
 }
 init().catch(error => status(error.message, 'error'));

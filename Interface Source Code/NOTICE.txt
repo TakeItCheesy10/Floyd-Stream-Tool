@@ -1,0 +1,4 @@
+Floyd Stream Tool
+Based on Ultimate Stream Tool by Roberto Fiore (pokerobybeto), adapted for Floyd Esports.
+Original project: https://github.com/pokerobybeto/Ultimate-Stream-Tool
+The original package declares the MIT license. Character and stage artwork retains its original attribution; stage sources are recorded in Resources/SmashUltimate/Stages/stages.json.
