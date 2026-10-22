@@ -32,7 +32,7 @@ body.sf6-versus{background:#08040f}body[hidden]{display:none!important}
 .fight-center>span{position:relative;font:italic 800 245px/1 Broadcast,'Arial Black',sans-serif;letter-spacing:-13px;transform:rotate(-9deg) skew(-9deg);color:#170b2b;-webkit-text-stroke:3px #f6a4ff;text-shadow:0 0 5px #fff,0 0 15px #f019ff,0 0 35px #f000e6,7px 9px 0 #090215;z-index:2}
 .versus-slash{position:absolute;width:5px;height:740px;top:70px;left:52%;background:linear-gradient(transparent,#e44eff,#faabff,#9130ed,transparent);transform:rotate(14deg);box-shadow:0 0 24px #e42fff;opacity:.65}
 .fight-bottom{position:absolute;bottom:18px;left:55px;right:55px;height:3px;z-index:4}.fight-bottom>div{height:100%;background:linear-gradient(90deg,var(--blue),#e346ff 49%,var(--red));box-shadow:0 0 12px #f325e744}
-@media(prefers-reduced-motion:no-preference){.fight-side.home .matchup-art{animation:enter-left .75s cubic-bezier(.15,.75,.22,1) both}.fight-side.away .matchup-art{animation:enter-right .75s cubic-bezier(.15,.75,.22,1) both}.fight-identity{animation:name-up .65s .15s both}.fight-center>span{animation:neon-breathe 4s ease-in-out infinite}.fight-stage{animation:arena-reveal .5s both}@keyframes enter-left{from{opacity:0;translate:-160px 20px;scale:1.06}to{opacity:1;translate:0 0;scale:1}}@keyframes enter-right{from{opacity:0;translate:160px 20px;scale:1.06}to{opacity:1;translate:0 0;scale:1}}@keyframes name-up{from{opacity:0;translate:0 35px}to{opacity:1;translate:0 0}}@keyframes neon-breathe{50%{filter:brightness(1.28);text-shadow:0 0 8px #fff,0 0 24px #f019ff,0 0 60px #cf00ff,7px 9px 0 #090215}}@keyframes tunnel-drift{to{transform:skew(-9deg) scale(1.07) translateY(-10px)}}@keyframes lights-pass{to{transform:translateX(240px);opacity:.2}}@keyframes arena-reveal{from{opacity:0}to{opacity:1}}}
+@media(prefers-reduced-motion:no-preference){.fight-side.home .matchup-art{animation:enter-left .75s cubic-bezier(.15,.75,.22,1) both}.fight-side.away .matchup-art{animation:enter-right .75s cubic-bezier(.15,.75,.22,1) both}.fight-identity{animation:name-up .65s .15s both}.fight-center>span{animation:neon-breathe 4s ease-in-out infinite}.fight-stage{animation:arena-reveal .5s both}@keyframes enter-left{from{opacity:0;translate:-160px 20px;scale:1.06}to{opacity:1;translate:0 0;scale:1}}@keyframes enter-right{from{opacity:0;translate:160px 20px;scale:1.06}to{opacity:1;translate:0 0;scale:1}}@keyframes name-up{from{opacity:0;translate:0 35px}to{opacity:1;translate:0 0}}@keyframes neon-breathe{50%{filter:brightness(1.18)}}@keyframes tunnel-drift{to{transform:skew(-9deg) scale(1.07) translateY(-10px)}}@keyframes lights-pass{to{transform:translateX(240px);opacity:.2}}@keyframes arena-reveal{from{opacity:0}to{opacity:1}}}
 
 /* School colors occupy the arena, light beams, brush fields and identity trim. */
 body{--p1-primary:var(--blue);--p2-primary:var(--red);--p1-secondary:#fff;--p2-secondary:#fff;--p1-presence:.8;--p2-presence:.8}
@@ -50,3 +50,28 @@ body{--p1-primary:var(--blue);--p2-primary:var(--red);--p1-secondary:#fff;--p2-s
 .random-beam{position:absolute;top:-420px;width:125px;height:1780px;opacity:0;transform-origin:50% 45%;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--beam-color),transparent 75%) 30%,var(--beam-color) 49%,color-mix(in srgb,var(--beam-color),transparent 75%) 70%,transparent);filter:blur(12px);will-change:transform,opacity}
 .random-beam:nth-child(2n){width:230px;filter:blur(30px)}
 .fight-heading>.sf6-wordmark{width:170px;height:145px;object-position:center}
+
+/* One coherent school palette per side. Secondary is reserved for fine trim/streaks. */
+body.sf6-versus{background:#080a10}
+.fight-stage{background:linear-gradient(105deg,color-mix(in srgb,var(--p1-primary),black 68%) 0%,color-mix(in srgb,var(--p1-primary),black 84%) 42%,#080a10 49% 51%,color-mix(in srgb,var(--p2-primary),black 84%) 58%,color-mix(in srgb,var(--p2-primary),black 68%) 100%)}
+.paint-split{background:radial-gradient(ellipse at 12% 52%,color-mix(in srgb,var(--p1-primary),transparent 38%),transparent 55%),radial-gradient(ellipse at 88% 52%,color-mix(in srgb,var(--p2-primary),transparent 38%),transparent 55%);opacity:.4}
+.school-aura{background:radial-gradient(ellipse at 38% 50%,var(--p1-primary),transparent 65%);opacity:calc(var(--p1-presence)*.65)}
+.school-aura.away{background:radial-gradient(ellipse at 62% 44%,var(--p2-primary),transparent 65%);opacity:calc(var(--p2-presence)*.65)}
+.arena-grid{background:radial-gradient(#ffffff30 1px,transparent 2px) 0 0/7px 7px;opacity:.28}
+.portrait-slab{background:linear-gradient(155deg,color-mix(in srgb,var(--accent),white 12%),transparent 64%,color-mix(in srgb,var(--accent),black 40%))}
+.away .portrait-slab{background:linear-gradient(215deg,color-mix(in srgb,var(--accent),white 12%),transparent 64%,color-mix(in srgb,var(--accent),black 40%))}
+.neon-tunnel{filter:drop-shadow(-8px 0 14px var(--p1-primary)) drop-shadow(8px 0 14px var(--p2-primary));opacity:.35}
+.neon-tunnel i{border-color:color-mix(in srgb,var(--p1-primary),white 30%);box-shadow:0 0 20px color-mix(in srgb,var(--p1-primary),transparent 45%)}
+.neon-tunnel i:nth-child(2){border-color:color-mix(in srgb,var(--p2-primary),white 25%);box-shadow:0 0 20px color-mix(in srgb,var(--p2-primary),transparent 45%)}
+.neon-tunnel i:nth-child(3){border-color:#ffffff55;box-shadow:none}
+.fight-center:before{background:radial-gradient(ellipse,color-mix(in srgb,var(--p1-primary),transparent 82%),transparent 65%)}
+.fight-center>span{color:#080a10;-webkit-text-stroke:3px #f4f7ff;text-shadow:-7px 0 18px var(--p1-primary),7px 0 18px var(--p2-primary),0 0 5px #ffffff80,7px 9px 0 #080a10}
+.versus-slash{background:linear-gradient(transparent,var(--p1-primary),#ffffffa0,var(--p2-primary),transparent);box-shadow:0 0 20px color-mix(in srgb,var(--p1-primary),transparent 40%)}
+.fight-identity{background:linear-gradient(transparent,#080a10e6 47%,#080a10f2 90%)}
+.fight-identity h1{text-shadow:4px 5px 0 #080a10,0 0 15px color-mix(in srgb,var(--accent),transparent 75%)}
+.fight-identity p,.away .fight-identity p{background:color-mix(in srgb,var(--accent),black 52%)}
+.fight-heading{background:linear-gradient(#080a10b8,transparent)}
+.fight-heading>.sf6-wordmark{filter:drop-shadow(0 0 8px #ffffff30)}
+.fight-heading>img:not(.sf6-wordmark){filter:drop-shadow(0 0 12px #ffffff20) drop-shadow(0 4px 5px #000)}
+.matchup-art{filter:drop-shadow(0 0 3px #ffffff55) drop-shadow(-15px 12px 20px #000000a8)}
+.fight-bottom>div{background:linear-gradient(90deg,var(--p1-primary),#ffffff60 49%,var(--p2-primary));box-shadow:none}

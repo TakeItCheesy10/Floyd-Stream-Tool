@@ -28,6 +28,7 @@ async function refresh() {
             document.querySelectorAll('.fight-side.' + (p === 'p1' ? 'home' : 'away')).forEach(side => side.dataset.colorStrength = match[p + 'VsColorStrength'] || 'bold');
             document.body.style.setProperty('--' + p + '-presence', ({subtle:'.25',balanced:'.5',bold:'.8'})[match[p + 'VsColorStrength']] || '.8');
         }
+        document.dispatchEvent(new Event('school-colors-updated'));
         const max = match.bestOf === 'Bo3' ? 2 : 3;
         text('eventName', match.tournamentName || 'FLOYD ESPORTS');
         text('roundName', match.round || 'MATCH DAY');

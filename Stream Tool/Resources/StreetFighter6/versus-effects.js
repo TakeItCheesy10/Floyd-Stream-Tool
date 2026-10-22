@@ -39,34 +39,60 @@
         }
         ink.restore();
     }
-    brush(-170, 210, 980, 245, -.3, '#3a1cb3');
-    brush(-120, 390, 930, 170, -.28, '#02c7de');
-    brush(-120, 750, 1100, 155, -.25, '#b20cd6');
-    brush(1100, 190, 1100, 230, .26, '#bc137b');
-    brush(1180, 390, 1050, 160, .24, '#ff5c0a');
-    brush(950, 720, 1150, 160, .22, '#9c20e3');
-    ink.globalAlpha = .7;
-    splatter(180, 650, 275, '#03b7d2');
-    splatter(1720, 630, 290, '#d4198c');
-    splatter(1030, 180, 230, '#7b14be');
-    // Paint grain and dust stay behind the characters and player names.
-    ink.globalAlpha = .12;
-    for (let i = 0; i < 4500; i++) {
-        ink.fillStyle = random() > .6 ? '#ffffff' : '#09030f';
-        ink.fillRect(random() * 1920, random() * 1080, 1 + random() * 3, 1 + random() * 3);
+    function shade(hex, amount) {
+        const value = parseInt(hex.slice(1), 16), target = amount < 0 ? 0 : 255, mix = Math.abs(amount);
+        return '#' + [16,8,0].map(shift => Math.round(((value >> shift) & 255) * (1-mix) + target * mix).toString(16).padStart(2,'0')).join('');
     }
-    const motes = Array.from({length:46}, () => ({x:random()*1920,y:random()*1080,r:1+random()*2.5,speed:4+random()*13,phase:random()*6.28,color:['#c65dff','#fc75c9','#63e7ef','#ffc074'][Math.floor(random()*4)]}));
+    let palette = [], paletteKey = '';
+    const motes = Array.from({length:46}, () => ({x:random()*1920,y:random()*1080,r:1+random()*2.5,speed:4+random()*13,phase:random()*6.28}));
+    function paintSchools() {
+        const style = getComputedStyle(document.body);
+        const read = (key, fallback) => { const color = style.getPropertyValue(key).trim(); return /^#[0-9a-f]{6}$/i.test(color) ? color : fallback; };
+        const colors = [read('--p1-primary','#203cff'),read('--p1-secondary','#ffffff'),read('--p2-primary','#ff3126'),read('--p2-secondary','#ffffff')];
+        if (colors.join() === paletteKey) return;
+        paletteKey = colors.join(); palette = colors; seed = 1946;
+        ink.clearRect(0,0,1920,1080);
+        for (let side = 0; side < 2; side++) {
+            const primary = colors[side*2], secondary = colors[side*2+1];
+            ink.save(); ink.beginPath(); ink.rect(side*960,0,960,1080); ink.clip();
+            if (!side) {
+                brush(-170,210,1120,245,-.3,shade(primary,-.3));
+                brush(-120,390,1030,170,-.28,shade(primary,.16));
+                brush(-120,750,1140,155,-.25,primary);
+                ink.globalAlpha=.4; splatter(180,650,210,shade(primary,-.16));
+                // Secondary stays confined to a few fine paint streaks.
+                brush(-20,340,580,7,-.28,secondary);
+                brush(80,790,390,5,-.25,secondary);
+            } else {
+                brush(1030,190,1100,230,.26,shade(primary,-.3));
+                brush(1060,390,1050,160,.24,shade(primary,.16));
+                brush(980,720,1150,160,.22,primary);
+                ink.globalAlpha=.4; splatter(1720,630,220,shade(primary,-.16));
+                brush(1370,230,580,7,.24,secondary);
+                brush(1480,760,390,5,.22,secondary);
+            }
+            ink.restore();
+        }
+        ink.globalAlpha=.07;
+        for (let i=0;i<3200;i++) {
+            ink.fillStyle=random()>.6?'#ffffff':'#000000';
+            ink.fillRect(random()*1920,random()*1080,1+random()*2,1+random()*2);
+        }
+        ink.globalAlpha=1;
+        draw();
+    }
     function draw(time = 0) {
         ctx.clearRect(0, 0, 1920, 1080); ctx.drawImage(base, 0, 0);
         for (const mote of motes) {
             const y = (mote.y - time * mote.speed / 1000 + 2160) % 1080;
             ctx.globalAlpha = .25 + .25 * Math.sin(time/2000 + mote.phase);
-            ctx.fillStyle = mote.color; ctx.beginPath();
+            ctx.fillStyle = shade(palette[mote.x < 960 ? 0 : 2] || '#203cff', .35); ctx.beginPath();
             ctx.arc(mote.x + Math.sin(time/3500 + mote.phase)*14, y, mote.r, 0, Math.PI*2); ctx.fill();
         }
         ctx.globalAlpha = 1;
     }
-    draw();
+    paintSchools();
+    document.addEventListener('school-colors-updated', paintSchools);
     // Independent spotlights choose a fresh path, duration and pause on every pass.
     const lights = document.querySelector('.light-sweep');
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -74,8 +100,8 @@
         for (let i = 0; i < 6; i++) {
             const beam = document.createElement('i'); beam.className = 'random-beam';
             const side = i < 3 ? 'p1' : 'p2';
-            const isSecondary = i % 3 === 1;
-            beam.style.setProperty('--beam-color', 'var(--' + side + (isSecondary ? '-secondary)' : '-primary)'));
+            const soft = i % 3 === 1;
+            beam.style.setProperty('--beam-color', 'var(--' + side + '-primary)');
             lights.append(beam);
             const pass = () => {
                 if (motion.matches) { beam.style.opacity = '0'; return; }
@@ -83,7 +109,7 @@
                 const start = (home ? -160 : 1100) + Math.random() * 650;
                 const end = (home ? -50 : 980) + Math.random() * 750;
                 const angle = -38 + Math.random() * 76;
-                const peak = isSecondary ? .04 + Math.random() * .055 : .08 + Math.random() * .14;
+                const peak = soft ? .04 + Math.random() * .05 : .08 + Math.random() * .12;
                 const duration = 4800 + Math.random() * 7800;
                 const pause = 200 + Math.random() * 3800;
                 const animation = beam.animate([
