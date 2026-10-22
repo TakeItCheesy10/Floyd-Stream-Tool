@@ -1,6 +1,7 @@
 // Adapted from Versari's two-level SF6 scorebug. Local data only; no remote match feed.
 const $ = id => document.getElementById(id);
-let previous = '', characters;
+let previous = '', characters, stages;
+const stageKey = name => String(name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
 const text = (id, value) => { if ($(id)) $(id).textContent = value; };
 function pips(id, count, max) {
     const host = $(id); if (!host) return;
@@ -19,8 +20,21 @@ async function refresh() {
             const profiles = await fetch('/api/games', { cache: 'no-store' }).then(r => r.json());
             characters = profiles.find(g => g.id === 'smash-ultimate').characters;
         }
+        if ($('stageImage') && !stages) stages = await fetch('/Resources/SmashUltimate/Stages/stages.json', {cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Stage images unavailable');return r.json();});
         const match = saved.match;
-        text('stageName',match.stage&&match.stage!=='Random'?match.stage:'STAGE TO BE SELECTED');text('stageSymbol',match.stage&&match.stage!=='Random'?'◆':'?');
+        const stage = stages?.find(s => stageKey(s.name) === stageKey(match.stage));
+        text('stageName', stage?.name || 'Stage not selected');
+        const stageImage = $('stageImage');
+        if(stageImage) {
+            stageImage.hidden = !stage;
+            $('stageSymbol').hidden = Boolean(stage);
+            if(stage) {
+                const url='/Resources/SmashUltimate/Stages/'+stage.file;
+                stageImage.alt=stage.name; stageImage.parentElement.title=stage.name;
+                stageImage.onerror=()=>{stageImage.hidden=true;$('stageSymbol').hidden=false;stageImage.removeAttribute('src');previous='';};
+                if(stageImage.getAttribute('src')!==url)stageImage.src=url;
+            } else {stageImage.removeAttribute('src');stageImage.parentElement.title='Stage not selected';}
+        }
         document.body.style.setProperty('--blue', match.p1PrimaryColor || '#203cff');
         document.body.style.setProperty('--red', match.p2PrimaryColor || '#ff3126');
         for (const p of ['p1', 'p2']) {

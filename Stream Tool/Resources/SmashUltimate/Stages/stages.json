@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Battlefield",
+    "file": "battlefield.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_img1.jpg"
+  },
+  {
+    "name": "Small Battlefield",
+    "file": "small-battlefield.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_img104.jpg"
+  },
+  {
+    "name": "Final Destination",
+    "file": "final-destination.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_img3.jpg"
+  },
+  {
+    "name": "Yoshi's Story",
+    "file": "yoshi-s-story.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_img19.jpg"
+  },
+  {
+    "name": "Yoshi's Island",
+    "file": "yoshi-s-island.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_img37.jpg"
+  },
+  {
+    "name": "Pokémon Stadium 2",
+    "file": "pokemon-stadium-2.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_img40.jpg"
+  },
+  {
+    "name": "Smashville",
+    "file": "smashville.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_img44.jpg"
+  },
+  {
+    "name": "Kalos Pokémon League",
+    "file": "kalos-pokemon-league.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_img79.jpg"
+  },
+  {
+    "name": "Town and City",
+    "file": "town-and-city.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_img85_en.jpg"
+  },
+  {
+    "name": "Hollow Bastion",
+    "file": "hollow-bastion.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_main16_2.jpg"
+  },
+  {
+    "name": "Northern Cave",
+    "file": "northern-cave.jpg",
+    "source": "https://www.smashbros.com/assets_v2/img/stage/stage_main13.jpg"
+  }
+]

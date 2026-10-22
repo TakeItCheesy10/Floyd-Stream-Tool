@@ -9,3 +9,7 @@
 .challenger{--presence:var(--p1-presence,.8)}.challenger.away{--presence:var(--p2-presence,.8)}.fighter-backdrop{opacity:calc(.3 + var(--presence)*.8)}
 
 .smash-art{top:0;left:1%;width:98%;height:84%}.character-icon{width:48px;height:48px;flex-basis:48px}
+
+/* Match the original scorebug's 1152 x 113 footprint at x=382, y=42. */
+.scorebug{top:42px;bottom:auto;left:958px;width:1417px;transform:translateX(-50%) scale(.813);transform-origin:50% 0}
+.stage-card{width:340px;height:110px;bottom:14px;padding:0;border:3px solid white;border-left:6px solid var(--p1-primary);border-right:6px solid var(--p2-primary);overflow:hidden;background:linear-gradient(110deg,color-mix(in srgb,var(--p1-primary),black 45%),color-mix(in srgb,var(--p2-primary),black 45%))}.stage-card #stageImage{width:100%;height:100%;object-fit:cover;display:block}.stage-card #stageImage[hidden]{display:none}.stage-card .stage-symbol{inset:0;display:grid;place-items:center;color:white;font-size:76px;line-height:1;text-shadow:3px 3px var(--p1-primary),-3px -3px var(--p2-primary)}.stage-card .stage-symbol[hidden]{display:none}.stage-card .stage-accessible{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
