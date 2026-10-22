@@ -109,14 +109,14 @@ async function publish() {
     if (!live || busy || loading) return;
     const invalid = [...document.querySelectorAll('input,select')].find(input => input.offsetParent && !input.checkValidity());
     if (invalid) { invalid.reportValidity(); return; }
-    busy = true; $('publish').disabled = true; $('gameSelect').disabled = true;
+    busy = true; document.querySelectorAll('#publish,[data-publish]').forEach(button => button.disabled = true); $('gameSelect').disabled = true;
     const editedAt = revision; status('Publishing...', 'pending');
     try {
         live = await api('/api/scoreboard', { ...draft(), gameId: live.gameId });
         dirty = revision !== editedAt;
         status(dirty ? 'Unpublished changes' : 'LIVE · All changes published', dirty ? 'pending' : 'live');
     } catch (error) { status(error.message, 'error'); }
-    finally { busy = false; $('publish').disabled = false; $('gameSelect').disabled = false; }
+    finally { busy = false; document.querySelectorAll('#publish,[data-publish]').forEach(button => button.disabled = false); $('gameSelect').disabled = false; }
 }
 async function switchGame() {
     if (busy || loading) { $('gameSelect').value = live.gameId; return; }
@@ -144,7 +144,7 @@ async function init() {
     await paint(await api('/api/state')); $('gameSelect').disabled = false;
     document.querySelector('.app').addEventListener('input', event => { if (event.target.matches('input,select') && event.target.id !== 'gameSelect') edited(); });
     $('bestOf').addEventListener('change', setLimits);
-    $('gameSelect').onchange = switchGame; $('publish').onclick = publish;
+    $('gameSelect').onchange = switchGame; $('publish').onclick = publish; document.querySelectorAll('[data-publish]').forEach(button => button.onclick = publish);
     $('discard').onclick = async () => { if (busy) return; try { await paint(await api('/api/state')); } catch (error) { status(error.message, 'error'); } };
     $('swap').onclick = async () => {
         if (busy) return; const match = draft();
