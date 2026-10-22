@@ -1,11 +1,16 @@
 const { app, BrowserWindow, dialog, Tray, Menu, nativeImage } = require('electron');
 const path = require('node:path');
+const fs = require('node:fs');
+function logLifecycle(message) {
+    try { const dir=path.join(resolveBaseDir(),'.floyd-state');fs.mkdirSync(dir,{recursive:true});fs.appendFileSync(path.join(dir,'runtime.log'),new Date().toISOString()+' '+message+'\n'); } catch {}
+}
 const { startServer, resolveBaseDir } = require('./server');
 // Keep strong references: the window and tray own the local broadcast session.
 let service, mainWindow, tray, quitting = false;
 if (require('electron-squirrel-startup')) app.quit();
 const singleInstance = app.requestSingleInstanceLock();
 if (!singleInstance) app.quit();
+if (singleInstance) { logLifecycle('Starting process '+process.pid); process.on('exit',code=>logLifecycle('Process exit '+code)); app.on('child-process-gone',(_event,details)=>logLifecycle('Child process stopped: '+JSON.stringify(details))); }
 function showWindow() {
     if (!mainWindow) createWindow();
     if (mainWindow.isMinimized()) mainWindow.restore();
@@ -43,9 +48,9 @@ function createTray() {
 }
 app.on('second-instance', () => { if (service) showWindow(); });
 if (singleInstance) app.whenReady().then(async () => {
-    try { service = await startServer(); createTray(); createWindow(); }
+    try { service = await startServer(); logLifecycle('Server listening '+service.url); createTray(); createWindow(); }
     catch (error) { dialog.showErrorBox('Floyd Stream Tool could not start', error.message); app.quit(); }
 });
 app.on('activate', () => { if (service) showWindow(); });
 app.on('window-all-closed', () => { /* Tray keeps the local server running until explicit Quit. */ });
-app.on('before-quit', () => { quitting = true; service?.server.close(); tray?.destroy(); tray = null; });
+app.on('before-quit', () => { logLifecycle('Explicit app quit'); quitting = true; service?.server.close(); tray?.destroy(); tray = null; });

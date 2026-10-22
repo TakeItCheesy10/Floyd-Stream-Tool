@@ -156,6 +156,8 @@ async function refresh() {
             if (disconnected) {
                 status(dirty ? 'Unpublished changes' : 'LIVE · All changes published', dirty ? 'pending' : 'live');
                 disconnected = false;
+                const preview=$('previewFrame');
+                if (!$('previewPanel').hidden && preview.getAttribute('src')) preview.src=preview.getAttribute('src');
                 await Promise.all(['p1','p2'].map(async p=>{await loadSkins(p,controls[p+'Skin'].value);updateArt(p);}));
             }
             for(const p of ['p1','p2']) { const art=$(p+'Art'); if(art?.dataset.failed==='true'){art.dataset.failed='';updateArt(p);} }
