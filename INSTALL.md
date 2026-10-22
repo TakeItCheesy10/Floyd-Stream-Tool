@@ -23,3 +23,8 @@ Use Browser sources at 1920 by 1080:
 In Interface Source Code, run npm ci and npm test, then increase the version with npm version patch --no-git-tag-version. Commit the source and lockfile, create a matching v<version> tag, and push that tag. The Windows desktop release workflow builds and publishes the Setup executable, blockmap, and latest.yml together. GitHub Actions must be enabled for this repository. No GitHub token is embedded in the app.
 
 For a local build, run npm run dist on Windows and publish those same three generated files together in a stable GitHub Release.
+
+## Stream Deck shortcuts
+
+Open Stream Deck / custom score shortcuts in the controller. Fill suggested keys or enter combinations, then Save shortcuts. Leave an action blank to disable it. In Elgato Stream Deck use System > Hotkey and assign the same combination. Each press immediately publishes only that score change for the current live game; unfinished names and character edits remain drafts. Keys work while the app is in the tray. Keep the desktop app running. Shortcut settings survive app updates.
+

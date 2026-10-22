@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, dialog, Tray, Menu, nativeImage, globalShortcut } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 function logLifecycle(message) {
@@ -53,9 +53,12 @@ if (singleInstance) app.whenReady().then(async () => {
         const { prepareUserData } = require('./user-data');
         const dataDir = app.isPackaged ? prepareUserData({userDataDir:app.getPath('userData'),legacyDataDir:path.join(resolveBaseDir(),'.floyd-state')}) : undefined;
         updates = require('./updates').createUpdates({app,dialog,parent:()=>mainWindow,log:logLifecycle});
-        service = await startServer({dataDir,updates}); logLifecycle('Server listening '+service.url); createTray(); createWindow(); }
+        service = await startServer({dataDir,updates});
+        service.app.locals.shortcuts = require('./shortcuts').createShortcuts({globalShortcut,dataDir:app.getPath('userData'),perform:action=>service.app.locals.store.adjustScore(action),log:logLifecycle});
+        logLifecycle('Server listening '+service.url); createTray(); createWindow(); }
     catch (error) { dialog.showErrorBox('Floyd Stream Tool could not start', error.message); app.quit(); }
 });
 app.on('activate', () => { if (service) showWindow(); });
+app.on('will-quit', () => globalShortcut.unregisterAll());
 app.on('window-all-closed', () => { /* Tray keeps the local server running until explicit Quit. */ });
 app.on('before-quit', () => { logLifecycle('Explicit app quit'); quitting = true; service?.server.close(); tray?.destroy(); tray = null; });

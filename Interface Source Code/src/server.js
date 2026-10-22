@@ -35,6 +35,11 @@ function createApp(options = {}) {
     app.get('/api/application', (req,res)=>res.json({version:options.updates?.version || require('../package.json').version,updatesSupported:Boolean(options.updates?.supported)}));
     app.post('/api/updates/check', async (req,res,next)=>{try{if(!options.updates?.supported)return res.status(409).json({error:'Updates are available in the installed app.'});res.json(await options.updates.check());}catch(error){next(error);}});
     app.get('/api/state', (req, res) => res.json(store.current()));
+    app.get('/api/shortcuts', (req,res) => res.json(app.locals.shortcuts?.current() || {supported:false}));
+    app.post('/api/shortcuts', (req,res) => {
+        if (!app.locals.shortcuts) return res.status(409).json({error:'Custom shortcuts require the desktop app.'});
+        res.json(app.locals.shortcuts.save(req.body));
+    });
     app.get('/api/matches/:gameId', (req, res) => {
         if (!profiles.some(profile => profile.id === req.params.gameId)) return res.sendStatus(404);
         const match = store.snapshot().matches[req.params.gameId];

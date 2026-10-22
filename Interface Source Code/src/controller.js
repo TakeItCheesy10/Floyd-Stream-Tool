@@ -135,8 +135,12 @@ async function publish() {
     busy = true; document.querySelectorAll('#publish,[data-publish]').forEach(button => button.disabled = true); $('gameSelect').disabled = true;
     const editedAt = revision; status('Publishing...', 'pending');
     try {
-        live = await api('/api/scoreboard', { ...draft(), gameId: live.gameId });
+        const pending = draft(), latest = await api('/api/state');
+        if (latest.gameId !== live.gameId) throw Error('Live game changed. Discard edits to reload.');
+        const merged = mergeLiveDraft(pending, live.match, latest.match);
+        live = await api('/api/scoreboard', { ...merged, gameId: live.gameId });
         dirty = revision !== editedAt;
+        if (!dirty) await paint(live);
         status(dirty ? 'Unpublished changes' : 'LIVE · All changes published', dirty ? 'pending' : 'live');
     } catch (error) { status(error.message, 'error'); }
     finally { busy = false; document.querySelectorAll('#publish,[data-publish]').forEach(button => button.disabled = false); $('gameSelect').disabled = false; }
@@ -163,8 +167,12 @@ async function refresh() {
             for(const p of ['p1','p2']) { const art=$(p+'Art'); if(art?.dataset.failed==='true'){art.dataset.failed='';updateArt(p);} }
             document.querySelectorAll('.costume-option img[data-failed="true"]').forEach(img=>{img.dataset.failed='';img.src=img.dataset.asset;});
             if (changed.timestamp !== live.timestamp) {
-                if (dirty) status('Live match changed. Discard edits to reload it.', 'pending');
-                else await paint(await api('/api/state'));
+                const saved = await api('/api/state');
+                if (dirty && saved.gameId === live.gameId) {
+                    const pending = mergeLiveDraft(draft(), live.match, saved.match);
+                    await paint({...saved, match:pending}); live=saved; edited();
+                } else if (dirty) status('Live game changed. Discard edits to reload it.', 'pending');
+                else await paint(saved);
             }
         }
     } catch { disconnected = true; status('Disconnected · keep the desktop app running', 'error'); }
@@ -174,7 +182,7 @@ async function init() {
     [profiles, info] = await Promise.all([api('/api/games'), api('/api/json/InterfaceInfo')]);
     $('gameSelect').replaceChildren(...profiles.map(g => new Option(g.name, g.id)));
     await paint(await api('/api/state')); $('gameSelect').disabled = false;
-    document.querySelector('.app').addEventListener('input', event => { if (event.target.matches('input,select') && event.target.id !== 'gameSelect') edited(); });
+    document.querySelector('.app').addEventListener('input', event => { if (!event.target.closest('#shortcutSettings') && event.target.matches('input,select') && event.target.id !== 'gameSelect') edited(); });
     $('bestOf').addEventListener('change', setLimits);
     $('gameSelect').onchange = switchGame; $('publish').onclick = publish; document.querySelectorAll('[data-publish]').forEach(button => button.onclick = publish);
     $('discard').onclick = async () => { if (busy) return; try { await paint(await api('/api/state')); } catch (error) { status(error.message, 'error'); } };
@@ -202,7 +210,11 @@ async function init() {
     document.querySelectorAll('[data-preview]').forEach(button => { button.onclick = () => { $('previewPanel').hidden = false; $('previewTitle').textContent = button.textContent + ' · live'; $('previewFrame').src = '/overlay/' + button.dataset.preview; }; });
     $('closePreview').onclick = () => { $('previewPanel').hidden = true; $('previewFrame').removeAttribute('src'); };
     document.addEventListener('keydown', event => {
-        if (event.key === 'F1' || event.key === 'F2') { event.preventDefault(); adjust((event.key === 'F1' ? 'p1' : 'p2') + 'BattleScore', 1); }
+        if (event.target.closest('#shortcutSettings')) return;
+        if ((event.key === 'F1' || event.key === 'F2') && !event.ctrlKey && !event.altKey && !event.shiftKey) {
+            if (window.floydGlobalKeys?.has(event.key.toUpperCase())) return;
+            event.preventDefault(); adjust((event.key === 'F1' ? 'p1' : 'p2') + 'BattleScore', 1);
+        }
         if (event.key === 'Enter' && event.target.tagName !== 'BUTTON') { event.preventDefault(); publish(); }
     });
     try { const application=await api('/api/application'); $('checkUpdates').hidden=!application.updatesSupported; $('updateStatus').textContent='v'+application.version; } catch {}

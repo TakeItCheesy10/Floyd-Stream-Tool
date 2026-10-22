@@ -1,0 +1,12 @@
+(async function () {
+    const host=document.createElement('details'); host.id='shortcutSettings';
+    host.innerHTML='<summary>Stream Deck / custom score shortcuts</summary><p>Shortcuts update live scores immediately, even while OBS is in front. Keep Floyd Stream Tool running. Names and character edits stay unpublished.</p><div class="shortcut-grid"></div><p>Enter a combination such as Ctrl+Alt+1 or F13. Leave blank to disable. In Stream Deck, add a System → Hotkey action with the same combination.</p><button id="suggestShortcuts">Fill suggested keys</button> <button id="saveShortcuts">Save shortcuts</button><p id="shortcutStatus" role="status"></p>';
+    document.querySelector('.app').append(host);
+    const labels={p1NScoreUp:'Home team +1',p1NScoreDown:'Home team −1',p2NScoreUp:'Away team +1',p2NScoreDown:'Away team −1',p1BattleScoreUp:'Home player +1',p1BattleScoreDown:'Home player −1',p2BattleScoreUp:'Away player +1',p2BattleScoreDown:'Away player −1'};
+    const inputs={};
+    for(const [id,text] of Object.entries(labels)) {const label=document.createElement('label');label.textContent=text;const input=document.createElement('input');input.type='text';input.maxLength=80;input.placeholder='Not assigned';label.append(input);host.querySelector('.shortcut-grid').append(label);inputs[id]=input;}
+    function display(saved) {for(const [id,input] of Object.entries(inputs))input.value=saved.bindings[id]||'';window.floydGlobalKeys=new Set(Object.values(saved.bindings).map(s=>s.toUpperCase()));document.getElementById('shortcutStatus').textContent=saved.warning||'Shortcuts saved. Score presses go live immediately.';}
+    try {const saved=await api('/api/shortcuts');if(!saved.supported){host.querySelector('p').textContent='Custom global shortcuts are available in the desktop app.';host.querySelectorAll('input,button').forEach(n=>n.disabled=true);return;}display(saved);}catch(error){document.getElementById('shortcutStatus').textContent=error.message;}
+    document.getElementById('suggestShortcuts').onclick=()=>{Object.values(inputs).forEach((input,i)=>input.value='Ctrl+Alt+'+(i+1));document.getElementById('shortcutStatus').textContent='Suggested keys filled. Click Save shortcuts to activate.';};
+    document.getElementById('saveShortcuts').onclick=async()=>{try{display(await api('/api/shortcuts',Object.fromEntries(Object.entries(inputs).map(([id,input])=>[id,input.value]))));}catch(error){document.getElementById('shortcutStatus').textContent=error.message;}};
+})();

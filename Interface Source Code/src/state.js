@@ -113,6 +113,18 @@ function createStore({ dataDir, textsDir, games }) {
     };
     return {
         snapshot: () => structuredClone(state), current,
+        adjustScore(action) {
+            const match = /^(p[12])(NScore|BattleScore)(Up|Down)$/.exec(action);
+            if (!match) invalid('Unknown score action');
+            const [, player, suffix, direction] = match;
+            const next = structuredClone(state), live = next.matches[state.activeGame];
+            const max = suffix === 'BattleScore' ? 2 : state.activeGame === 'street-fighter-6' ? (live.bestOf === 'Bo5' ? 3 : 2) : 999;
+            const value = Math.max(0, Math.min(max, Number(live[player + suffix]) + (direction === 'Up' ? 1 : -1)));
+            if (value === Number(live[player + suffix])) return current();
+            live[player + suffix] = suffix === 'NScore' ? String(value) : value;
+            next.matches[state.activeGame] = validate(state.activeGame, live);
+            return commit(next);
+        },
         select(id) {
             if (!games.some(g => g.id === id)) invalid('Unknown game');
             if (id === state.activeGame) return current();
