@@ -20,4 +20,6 @@ Use Browser sources at 1920 by 1080:
 
 ## Publishing a later version
 
-In Interface Source Code, run npm ci and npm test, increase the version with npm version patch --no-git-tag-version, then run npm run dist on Windows. Publish the generated Setup executable, blockmap, and latest.yml together in a stable GitHub Release tagged v<version>. No GitHub token is embedded in the app.
+In Interface Source Code, run npm ci and npm test, then increase the version with npm version patch --no-git-tag-version. Commit the source and lockfile, create a matching v<version> tag, and push that tag. The Windows desktop release workflow builds and publishes the Setup executable, blockmap, and latest.yml together. GitHub Actions must be enabled for this repository. No GitHub token is embedded in the app.
+
+For a local build, run npm run dist on Windows and publish those same three generated files together in a stable GitHub Release.
