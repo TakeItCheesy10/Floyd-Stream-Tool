@@ -1,7 +1,7 @@
 {
   "name": "floyd-stream-tool",
   "productName": "Floyd Stream Tool",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Standalone esports scoreboard and OBS overlay controller",
   "main": "src/index.js",
   "scripts": {
