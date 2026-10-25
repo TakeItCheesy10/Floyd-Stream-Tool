@@ -127,7 +127,7 @@ test('Street Fighter uses its own fighter roster, set wins and battle wins', asy
         const res = await fetch(service.url + '/layouts/street-fighter-6/' + kind);
         assert.equal(res.status, 200);
         const html = await res.text();
-        assert.match(html, /Branding\/floyd-bronco\.png/);
+        assert.doesNotMatch(html, /Branding\/floyd-bronco\.png/);
         assert.doesNotMatch(html, /versari|caster/i);
     }
     const active = await request('/api/active-game');
