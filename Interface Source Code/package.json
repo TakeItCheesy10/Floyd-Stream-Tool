@@ -1,7 +1,7 @@
 {
   "name": "floyd-stream-tool",
   "productName": "Floyd Stream Tool",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Standalone esports scoreboard and OBS overlay controller",
   "main": "src/index.js",
   "scripts": {
@@ -91,4 +91,3 @@
     "url": "https://github.com/TakeItCheesy10/Floyd-Stream-Tool.git"
   }
 }
-
