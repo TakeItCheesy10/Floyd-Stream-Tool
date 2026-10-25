@@ -22,6 +22,7 @@ async function refresh() {
         }
         if ($('stageImage') && !stages) stages = await fetch('/Resources/SmashUltimate/Stages/stages.json', {cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Stage images unavailable');return r.json();});
         const match = saved.match;
+        document.body.dataset.theme = match.theme || 'floyd';
         const stage = stages?.find(s => stageKey(s.name) === stageKey(match.stage));
         text('stageName', stage?.name || 'Stage not selected');
         const stageImage = $('stageImage');

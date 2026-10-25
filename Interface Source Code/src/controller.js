@@ -99,6 +99,7 @@ async function paint(saved) {
             else input.value = live.match[key] ?? (key.endsWith('SecondaryColor') ? '#ffffff' : key.endsWith('VsColorStrength') ? 'bold' : key.endsWith('PrimaryColor') ? (key.startsWith('p1') ? '#203cff' : '#ff3126') : key.endsWith('BattleScore') ? '0' : '');
         }
         for (const key of ['bestOf', 'format']) $(key).value = live.match[key] ?? (key.startsWith('current') ? 1 : '');
+        $('themeSelect').value = live.match.theme || 'floyd';
         $('allowIntro').checked = Boolean(live.match.allowIntro);
         $('stage').value=live.match.stage==='Random'?'':live.match.stage||'';
         await Promise.all(['p1', 'p2'].map(async p => { await loadSkins(p, live.match[p + 'Skin']); updateArt(p); }));
@@ -115,6 +116,7 @@ function draft() {
     const match = { ...live.match };
     for (const [key, input] of Object.entries(controls)) match[key] = input.type === 'checkbox' ? input.checked : input.value;
     for (const key of ['bestOf', 'format']) match[key] = $(key).value;
+    match.theme = $('themeSelect').value;
     match.allowIntro = $('allowIntro').checked;
     for(const p of ['p1','p2'])match[p+'VsColorStrength']='bold';
     if(!sf6())match.stage=$('stage').value||'Random';

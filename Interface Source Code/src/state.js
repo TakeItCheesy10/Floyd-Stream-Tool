@@ -9,6 +9,8 @@ function atomicJson(file, data) {
 function validateMatch(input, info) {
     if (!input || typeof input !== 'object' || Array.isArray(input)) invalid('Match must be an object');
     const result = {};
+    result.theme = input.theme ?? 'floyd';
+    if (!['default', 'floyd'].includes(result.theme)) invalid('Unknown broadcast theme');
     for (const key of ['p1Name', 'p2Name', 'p1Team', 'p2Team', 'p1Pron', 'p2Pron', 'round', 'tournamentName']) {
         const value = input[key] ?? '';
         if (typeof value !== 'string' || value.length > 200) invalid(`${key} must be text (up to 200 characters)`);
@@ -100,7 +102,7 @@ function createStore({ dataDir, textsDir, games }) {
     } else {
         const seed = JSON.parse(fs.readFileSync(path.join(textsDir, 'ScoreboardInfo.json'), 'utf8'));
         seed.p1NScore ||= '0'; seed.p2NScore ||= '0';
-        Object.assign(seed,{p1Character:'Random',p2Character:'Random',p1Skin:'1',p2Skin:'1',stage:'Random'});
+        Object.assign(seed,{theme:'default',p1Character:'Random',p2Character:'Random',p1Skin:'1',p2Skin:'1',stage:'Random'});
         state = { version: 1, activeGame: games[0].id, revision: Date.now(), matches: { [games[0].id]: validate(games[0].id, seed) } };
         atomicJson(file, state);
     }
@@ -131,6 +133,7 @@ function createStore({ dataDir, textsDir, games }) {
             const next = structuredClone(state);
             next.activeGame = id;
             next.matches[id] ||= validate(id, games.find(g => g.id === id).defaults || {});
+            next.matches[id].theme = state.matches[state.activeGame].theme;
             return commit(next);
         },
         resetSelections() {

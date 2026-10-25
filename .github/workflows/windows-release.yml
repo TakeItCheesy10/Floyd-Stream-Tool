@@ -1,6 +1,10 @@
 name: Windows desktop release
 on:
   push:
+    branches:
+      - feature/multi-game-foundation
+    paths:
+      - 'Interface Source Code/package.json'
     tags:
       - 'v*.*.*'
 permissions:
@@ -19,20 +23,25 @@ jobs:
           cache: npm
           cache-dependency-path: Interface Source Code/package-lock.json
       - name: Check release version
-        run: node -e "if(process.env.GITHUB_REF_NAME!=='v'+require('./package.json').version)throw Error('Tag and application version must match')"
+        run: node -e "if(process.env.GITHUB_REF_TYPE==='tag' && process.env.GITHUB_REF_NAME!=='v'+require('./package.json').version)throw Error('Tag and application version must match')"
       - run: npm ci
       - run: npm test
       - name: Build installer and update metadata
         run: npx --no-install electron-builder --win nsis --x64 --publish never
       - name: Publish only after all update files are uploaded
         run: |
-          $tag = $env:GITHUB_REF_NAME
+          $tag = 'v' + (Get-Content package.json | ConvertFrom-Json).version
           $version = $tag.Substring(1)
           $files = @("dist/Floyd-Stream-Tool-Setup-$version.exe", "dist/Floyd-Stream-Tool-Setup-$version.exe.blockmap", 'dist/latest.yml')
           foreach ($file in $files) { if (!(Test-Path -LiteralPath $file)) { throw "Missing release file: $file" } }
+          gh api "repos/$env:GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha 2>$null | Out-Null
+          if ($LASTEXITCODE -ne 0) {
+            gh api "repos/$env:GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$tag" -f "sha=$env:GITHUB_SHA"
+            if ($LASTEXITCODE -ne 0) { throw 'Could not create release tag' }
+          }
           gh release view $tag --json isDraft | Out-Null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --draft --verify-tag --title "Floyd Stream Tool $version" --notes 'Custom global score shortcuts for Stream Deck. Assign keys in the controller and match them in Stream Deck System > Hotkey. Updates preserve saved matches and shortcuts.'
+            gh release create $tag --draft --verify-tag --title "Floyd Stream Tool $version" --notes-file ../RELEASE_NOTES.md
             if ($LASTEXITCODE -ne 0) { throw 'Could not create draft release' }
           }
           gh release upload $tag @files --clobber

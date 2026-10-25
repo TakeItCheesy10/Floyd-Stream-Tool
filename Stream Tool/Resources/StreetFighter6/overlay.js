@@ -20,6 +20,7 @@ async function refresh() {
             characters = profiles.find(g => g.id === 'street-fighter-6').characters;
         }
         const match = saved.match;
+        document.body.dataset.theme = match.theme || 'floyd';
         document.body.style.setProperty('--blue', match.p1PrimaryColor || '#203cff');
         document.body.style.setProperty('--red', match.p2PrimaryColor || '#ff3126');
         for (const p of ['p1', 'p2']) {
@@ -46,15 +47,15 @@ async function refresh() {
             const icon = $(`${p}Icon`);
             if (icon) {
                 const fighter = characters.find(c => c.name === match[`${p}Character`]);
-                icon.hidden = !fighter;
+                icon.hidden = !fighter; if ($(p+'IconUnknown')) $(p+'IconUnknown').hidden = Boolean(fighter);
                 icon.onerror = () => { icon.hidden = true; icon.removeAttribute('src'); previous=''; };
                 if (fighter && icon.getAttribute('src') !== fighter.art) { icon.src = fighter.art; icon.alt = fighter.name; }
             }
             const art = $(`${p}Art`);
             if (art) {
                 const fighter = characters.find(c => c.name === match[`${p}Character`]);
-                art.hidden = !fighter;
-                art.onerror = () => { art.removeAttribute('src'); art.dataset.source=''; previous=''; art.hidden = true; };
+                art.hidden = !fighter; if ($(p+'Unknown')) $(p+'Unknown').hidden = Boolean(fighter);
+                art.onerror = () => { art.removeAttribute('src'); art.dataset.source=''; previous=''; art.hidden = true; if ($(p+'Unknown')) $(p+'Unknown').hidden=false; };
                 if (fighter && art.getAttribute('src') !== fighter.art) { art.src = fighter.art; art.alt = fighter.name; }
             }
         }
