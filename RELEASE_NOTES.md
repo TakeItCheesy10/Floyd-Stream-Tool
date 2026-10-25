@@ -1,11 +1,7 @@
-# Floyd Stream Tool 2.1.0
+# Floyd Stream Tool 2.1.1
 
-Animated Smash Ultimate and Street Fighter 6 scoreboards and VS screens inspired by the Floyd Starting Soon video: dark metal panels, pixel fragments, electric seams, and metallic VS lettering.
-
-- Default and Floyd Esports themes, selected beside Live game and applied with Publish.
-- Primary and secondary school colors customize each side.
-- Existing scoreboard footprints and OBS URLs stay the same.
-- Team and player scores, Smash costumes, stage pictures, reset controls, and Stream Deck shortcuts are retained.
-- Existing saves retain Floyd branding; new installations start with Default.
+- Smash and Street Fighter VS character backdrops now use square pixel steps and block textures instead of slanted panels.
+- Removed the center Bronco logos from both VS screens and scoreboards, including the scoreboard backing plate, leaving room for your own OBS branding.
+- School colors, animations, scores, character art, and scoreboard proportions are preserved.
 
 Use Check for updates in the app. Saved matches and shortcuts are preserved.
