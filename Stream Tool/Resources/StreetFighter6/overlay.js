@@ -21,11 +21,12 @@ async function refresh() {
         }
         const match = saved.match;
         document.body.dataset.theme = match.theme || 'floyd';
-        document.body.style.setProperty('--blue', match.p1PrimaryColor || '#203cff');
-        document.body.style.setProperty('--red', match.p2PrimaryColor || '#ff3126');
+        const schoolColors = document.body.dataset.theme === 'floyd';
+        document.body.style.setProperty('--blue', schoolColors ? (match.p1PrimaryColor || '#203cff') : '#203cff');
+        document.body.style.setProperty('--red', schoolColors ? (match.p2PrimaryColor || '#ff3126') : '#ff3126');
         for (const p of ['p1', 'p2']) {
-            document.body.style.setProperty('--' + p + '-primary', match[p + 'PrimaryColor'] || (p === 'p1' ? '#203cff' : '#ff3126'));
-            document.body.style.setProperty('--' + p + '-secondary', match[p + 'SecondaryColor'] || '#ffffff');
+            document.body.style.setProperty('--' + p + '-primary', schoolColors ? (match[p + 'PrimaryColor'] || (p === 'p1' ? '#203cff' : '#ff3126')) : (p === 'p1' ? '#203cff' : '#ff3126'));
+            document.body.style.setProperty('--' + p + '-secondary', schoolColors ? (match[p + 'SecondaryColor'] || '#ffffff') : '#ffffff');
             document.querySelectorAll('.fight-side.' + (p === 'p1' ? 'home' : 'away')).forEach(side => side.dataset.colorStrength = 'bold');
             document.body.style.setProperty('--' + p + '-presence', '.8');
         }

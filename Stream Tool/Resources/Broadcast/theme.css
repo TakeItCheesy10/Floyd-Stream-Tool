@@ -27,3 +27,6 @@ body[data-game=smash-ultimate] .scorebug{left:958px;top:42px;bottom:auto;width:1
 
 .battle-frame>.energy-field{z-index:1;opacity:.65;mask-image:linear-gradient(90deg,#000 calc(50% - 74px),transparent calc(50% - 74px),transparent calc(50% + 74px),#000 calc(50% + 74px))}.team-row,.player-row,.set-pips{z-index:2}.center-brand{z-index:3}
 .floyd-game-logo{width:112px;height:112px;object-fit:contain}.neutral-game-title{display:none}body[data-theme=default] .floyd-game-logo{display:none}body[data-theme=default] .neutral-game-title{display:block}
+
+/* Floyd broadcast accents follow the selected schools; Default stays blue/red. */
+body[data-theme=floyd]{--brand-blue:var(--p1-primary);--brand-red:var(--p2-primary)}

@@ -23,6 +23,7 @@ async function refresh() {
         if ($('stageImage') && !stages) stages = await fetch('/Resources/SmashUltimate/Stages/stages.json', {cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Stage images unavailable');return r.json();});
         const match = saved.match;
         document.body.dataset.theme = match.theme || 'floyd';
+        const schoolColors = document.body.dataset.theme === 'floyd';
         const stage = stages?.find(s => stageKey(s.name) === stageKey(match.stage));
         text('stageName', stage?.name || 'Stage not selected');
         const stageImage = $('stageImage');
@@ -36,11 +37,11 @@ async function refresh() {
                 if(stageImage.getAttribute('src')!==url)stageImage.src=url;
             } else {stageImage.removeAttribute('src');stageImage.parentElement.title='Stage not selected';}
         }
-        document.body.style.setProperty('--blue', match.p1PrimaryColor || '#203cff');
-        document.body.style.setProperty('--red', match.p2PrimaryColor || '#ff3126');
+        document.body.style.setProperty('--blue', schoolColors ? (match.p1PrimaryColor || '#203cff') : '#203cff');
+        document.body.style.setProperty('--red', schoolColors ? (match.p2PrimaryColor || '#ff3126') : '#ff3126');
         for (const p of ['p1', 'p2']) {
-            document.body.style.setProperty('--' + p + '-primary', match[p + 'PrimaryColor'] || (p === 'p1' ? '#203cff' : '#ff3126'));
-            document.body.style.setProperty('--' + p + '-secondary', match[p + 'SecondaryColor'] || '#ffffff');
+            document.body.style.setProperty('--' + p + '-primary', schoolColors ? (match[p + 'PrimaryColor'] || (p === 'p1' ? '#203cff' : '#ff3126')) : (p === 'p1' ? '#203cff' : '#ff3126'));
+            document.body.style.setProperty('--' + p + '-secondary', schoolColors ? (match[p + 'SecondaryColor'] || '#ffffff') : '#ffffff');
             document.querySelectorAll('.fight-side.' + (p === 'p1' ? 'home' : 'away')).forEach(side => side.dataset.colorStrength = 'bold');
             document.body.style.setProperty('--' + p + '-presence', '.8');
         }

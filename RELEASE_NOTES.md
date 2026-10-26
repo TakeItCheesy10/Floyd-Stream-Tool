@@ -1,7 +1,7 @@
-# Floyd Stream Tool 2.1.2
+# Floyd Stream Tool 2.1.3
 
-- Kept the stepped, square VS character panel shapes.
-- Replaced the regular checkerboard texture with scattered pixel fragments in varied sizes, densities, and shades. Each side has a different pattern using the school colors.
-- Center branding spaces remain clear for your own OBS graphics.
+- Default theme keeps blue home and red away, with white accents.
+- Floyd Esports theme uses each school's selected primary and secondary colors across the scoreboard, VS panels, pixels, and animated effects. Shared broadcast accents follow the primary school colors.
+- Switching themes preserves your saved school color choices. Click Publish to apply.
 
 Use Check for updates in the app. Saved matches and shortcuts are preserved.
