@@ -1,0 +1,30 @@
+name: Audit release 2.1.4
+on:
+  push:
+    branches: [security/audit-v2-1-4]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Interface Source Code
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+      - name: Audit exact lockfile
+        shell: bash
+        run: |
+          npm audit --json > /tmp/audit-all.json || true
+          npm audit --omit=dev --json > /tmp/audit-production.json || true
+          node - <<'NODE'
+          const fs=require('fs');
+          for(const n of ['all','production']){
+            const a=JSON.parse(fs.readFileSync('/tmp/audit-'+n+'.json','utf8'));
+            if(a.error) throw new Error(JSON.stringify(a.error));
+            console.log('AUDIT_'+n.toUpperCase(),JSON.stringify({metadata:a.metadata,vulnerabilities:a.vulnerabilities}));
+          }
+          NODE
