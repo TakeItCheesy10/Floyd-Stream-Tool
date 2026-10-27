@@ -1,0 +1,29 @@
+name: Security audit for v2.1.3
+on:
+  push:
+    branches: [security/audit-v2-1-3]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Interface Source Code
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+      - name: Audit dependencies
+        shell: bash
+        run: |
+          npm audit --json > /tmp/floyd-audit-all.json || true
+          npm audit --omit=dev --json > /tmp/floyd-audit-prod.json || true
+          node - <<'NODE'
+          const fs = require('fs');
+          for (const mode of ['all','prod']) {
+            const a=JSON.parse(fs.readFileSync('/tmp/floyd-audit-'+mode+'.json','utf8'));
+            console.log('AUDIT_'+mode.toUpperCase(),JSON.stringify({metadata:a.metadata,vulnerabilities:Object.fromEntries(Object.entries(a.vulnerabilities||{}).map(([n,v])=>[n,{severity:v.severity,isDirect:v.isDirect,range:v.range,nodes:v.nodes,via:v.via,effects:v.effects,fixAvailable:v.fixAvailable}]))}));
+          }
+          NODE
