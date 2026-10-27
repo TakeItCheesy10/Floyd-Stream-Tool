@@ -166,3 +166,15 @@ test('Smash roster supplies costume choices and encoded image URLs are served', 
   }
  }
 });
+
+test('rejects compressed requests and keeps the local server available', async t => {
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'floyd-compressed-test-'));
+    const service = await startServer({ port: 0, dataDir });
+    t.after(async () => { await new Promise(r => service.server.close(r)); fs.rmSync(dataDir, { recursive: true, force: true }); });
+    const data = require('node:zlib').gzipSync(Buffer.from('{}'));
+    const response = await fetch(service.url + '/api/scoreboard', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' }, body: data
+    });
+    assert.equal(response.status, 415);
+    assert.equal((await fetch(service.url + '/api/state')).status, 200);
+});
